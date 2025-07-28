@@ -1,0 +1,103 @@
+version: '3.9'
+
+services:
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_db
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT}:80"
+    depends_on:
+      - postgres_db
+    networks:
+      - backend
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/apps/auth-service/main
+    container_name: auth-service
+    env_file:
+      - .env
+    ports:
+      - "${AUTH_TCP_PORT}:${AUTH_TCP_PORT}"
+    depends_on:
+      - postgres_db
+    networks:
+      - backend
+
+  products-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/apps/products-service/main
+    container_name: products-service
+    env_file:
+      - .env
+    ports:
+      - "${PRODUCTS_TCP_PORT}:${PRODUCTS_TCP_PORT}"
+    networks:
+      - backend
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/apps/cart-service/main
+    container_name: cart-service
+    env_file:
+      - .env
+    ports:
+      - "${CART_TCP_PORT}:${CART_TCP_PORT}"
+    networks:
+      - backend
+
+  orders-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/apps/orders-service/main
+    container_name: orders-service
+    env_file:
+      - .env
+    ports:
+      - "${ORDERS_TCP_PORT}:${ORDERS_TCP_PORT}"
+    networks:
+      - backend
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/apps/api-gateway/main
+    container_name: api-gateway
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
+    driver: bridge
