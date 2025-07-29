@@ -6,15 +6,15 @@ import { AppController } from './app.controller';
   imports: [
     ClientsModule.register([
       {
-        name: 'AUTH_SERVICE',
+        name: 'USERS_SERVICE',
         transport: Transport.TCP,
         options: {
-          host: '127.0.0.1',
-          port: 4001,
-        },
-      },
+          host:  process.env.USERS_HOST,
+          port: Number(process.env.USERS_TCP_PORT),
+        }, 
+      }
     ]),
   ],
-  controllers: [AppController],
+  controllers: [AppController ],
 })
 export class AppModule {}
