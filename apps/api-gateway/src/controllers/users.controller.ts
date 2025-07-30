@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Inject, Param, Patch, Post } from '@nest
 import { ClientProxy } from '@nestjs/microservices';
 
 @Controller('users')
-export class AppController {
+export class UserController {
   constructor(
     @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,
   ) {}

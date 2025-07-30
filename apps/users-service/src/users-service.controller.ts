@@ -3,10 +3,13 @@ import { UsersService } from './users-service.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserByAdminDto } from './dto/create-user.dto';
 
 @Controller()
 export class UsersServiceController {
   constructor(private readonly usersService: UsersService) { }
+
+
 
   @MessagePattern({ cmd: 'get_users' })
   async getAllUsers() {
@@ -14,7 +17,7 @@ export class UsersServiceController {
   }
 
   @MessagePattern({ cmd: 'get_user_by_id' })
-  async getUserById(@Param('id') id: string) {
+  async getUserById(@Payload() id: string) {
     return this.usersService.getUserById(id);
   }
 

@@ -1,10 +1,21 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { Body, Controller, Post } from '@nestjs/common';
+import { AuthService } from './auth-service.service';
+import { RegisterDto } from './dto/register-auth.dto';
+import { LoginDto } from './dto/login-auth.dto';
 
-@Controller()
+
+@Controller('auth')
 export class AuthController {
-  @MessagePattern({ cmd: 'ping' })
-  pingHandler() {
-    return 'pong from auth-service';
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
+  }
+
+  @Post('login')
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 }
+

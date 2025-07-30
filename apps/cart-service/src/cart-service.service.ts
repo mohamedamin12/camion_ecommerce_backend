@@ -23,7 +23,6 @@ export class CartServiceService {
     });
 
     if (existing) {
-      // If already exists, just update the quantity
       existing.quantity += dto.quantity;
       return this.cartRepository.save(existing);
     }

@@ -1,22 +1,21 @@
-import * as dotenv from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { AuthServiceModule } from './auth-service.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-dotenv.config();
-
-dotenv.config({ path: __dirname + '../../../.env' });
-
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AuthServiceModule, {
+  const app = await NestFactory.create(AuthServiceModule);
+  const config = app.get(ConfigService);
+
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
     options: {
-      host:  process.env.TCP_HOST ,
-      port: parseInt(process.env.TCP_PORT || ""),
+      host: config.get('AUTH_SERVICE_HOST'),
+      port: Number(config.get('AUTH_TCP_PORT')),
     },
   });
 
-  await app.listen();
-  console.log('Auth Service is running on TCP port 4001');
+  await app.startAllMicroservices();
+  await app.listen(config.get('AUTH_PORT') || 3000);
 }
 bootstrap();

@@ -1,55 +1,91 @@
-import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AppController } from './controllers/users.controller';
-import { AffiliateController } from './controllers/affiliate.controller';
-import { CartController } from './controllers/cart.controller';
-import { WishlistController } from './controllers/wishlist.controller';
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ClientsModule, Transport } from "@nestjs/microservices";
+import { UserController } from "./controllers/users.controller";
+import { CartController } from "./controllers/cart.controller";
+import { AffiliateController } from "./controllers/affiliate.controller";
+import { WishlistController } from "./controllers/wishlist.controller";
+import { AuthController } from "./controllers/auth.controller";
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ConfigModule.forRoot({ isGlobal: true }),
+
+    ClientsModule.registerAsync([
       {
         name: 'USERS_SERVICE',
-        transport: Transport.TCP,
-        options: {
-          host: process.env.USERS_HOST,
-          port: Number(process.env.USERS_TCP_PORT),
-        },
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('USERS_HOST'),
+            port: Number(config.get('USERS_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
       },
       {
         name: 'AFFILIATE_SERVICE',
-        transport: Transport.TCP,
-        options: {
-          host: process.env.AFFILIATE_HOST,
-          port: Number(process.env.AFFILIATE_TCP_PORT),
-        },
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('AFFILIATE_HOST'),
+            port: Number(config.get('AFFILIATE_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
       },
       {
         name: 'CART_SERVICE',
-        transport: Transport.TCP,
-        options: {
-          host: process.env.CART_HOST,
-          port: Number(process.env.CART_TCP_PORT),
-        },
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('CART_HOST'),
+            port: Number(config.get('CART_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
       },
       {
         name: 'WISHLIST_SERVICE',
-        transport: Transport.TCP,
-        options: {
-          host: process.env.WISHLIST_SERVICE_HOST,
-          port: Number(process.env.WISHLIST_TCP_PORT),
-        },
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('WISHLIST_SERVICE_HOST'),
+            port: Number(config.get('WISHLIST_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
       },
       {
         name: 'STORY_SERVICE',
-        transport: Transport.TCP,
-        options: {
-          host: process.env.STORY_SERVICE_HOST,
-          port: Number(process.env.STORY_TCP_PORT),
-        },
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('STORY_SERVICE_HOST'),
+            port: Number(config.get('STORY_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
+      },
+      {
+        name: 'AUTH_SERVICE',
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('AUTH_SERVICE_HOST'),
+            port: Number(config.get('AUTH_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
       },
     ]),
   ],
-  controllers: [AppController, CartController, AffiliateController, WishlistController],
+  controllers: [
+    UserController,
+    CartController,
+    AffiliateController,
+    WishlistController,
+    AuthController
+  ],
 })
-export class AppModule { }
+export class AppModule {}

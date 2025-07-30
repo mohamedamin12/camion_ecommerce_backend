@@ -33,13 +33,6 @@ export class User {
   })
   role: UserRole;
   
-
-  @Column({ nullable: true })
-  facebookId: string;
-
-  @Column({ nullable: true })
-  googleId: string;
-  
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
