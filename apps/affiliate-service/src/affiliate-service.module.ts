@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { UsersServiceController } from './users-service.controller';
-import { UsersService } from './users-service.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { AffiliateServiceController } from './affiliate-service.controller';
+import { AffiliateServiceService } from './affiliate-service.service';
 import { ConfigModule } from '@nestjs/config';
-import { User } from './entities/user.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Affiliate } from './entities/affiliate.entity';
+import { Coupon } from './entities/coupon.entity';
 
 @Module({
   imports: [
@@ -18,9 +19,9 @@ import { User } from './entities/user.entity';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([Affiliate, Coupon]),
   ],
-  controllers: [UsersServiceController],
-  providers: [UsersService],
+  controllers: [AffiliateServiceController],
+  providers: [AffiliateServiceService],
 })
-export class UsersServiceModule { }
+export class AffiliateServiceModule { }

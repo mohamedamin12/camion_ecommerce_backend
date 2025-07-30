@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { UsersService } from './users-service.service';
-import { UpdateUserDto } from '../dto/update-user.dto';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { FindUserDto } from '../dto/find-user.dto';
+import { FindUserDto } from './dto/find-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller()
 export class UsersServiceController {
@@ -26,7 +26,7 @@ export class UsersServiceController {
     }
     return this.usersService.findByEmailOrPhone(identifier);
   }
-  
+
 
   @MessagePattern({ cmd: 'update_user' })
   async updateUser(@Payload() payload: { id: string; updateData: UpdateUserDto }) {
@@ -39,4 +39,5 @@ export class UsersServiceController {
     await this.usersService.deleteUser(id);
     return { message: 'User deleted successfully' };
   }
+
 }

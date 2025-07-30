@@ -10,6 +10,15 @@
   "monorepo": true,
   "root": "apps/api-gateway",
   "projects": {
+    "affiliate-service": {
+      "type": "application",
+      "root": "apps/affiliate-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/affiliate-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/affiliate-service/tsconfig.app.json"
+      }
+    },
     "api-gateway": {
       "type": "application",
       "root": "apps/api-gateway",
@@ -62,6 +71,15 @@
       "sourceRoot": "apps/users-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/users-service/tsconfig.app.json"
+      }
+    },
+    "wishlist-service": {
+      "type": "application",
+      "root": "apps/wishlist-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/wishlist-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/wishlist-service/tsconfig.app.json"
       }
     }
   }

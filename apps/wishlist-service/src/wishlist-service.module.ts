@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UsersServiceController } from './users-service.controller';
-import { UsersService } from './users-service.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { WishlistServiceController } from './wishlist-service.controller';
+import { WishlistServiceService } from './wishlist-service.service';
 import { ConfigModule } from '@nestjs/config';
-import { User } from './entities/user.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { WishlistItem } from './entities/wishlist.entity';
 
 @Module({
   imports: [
@@ -18,9 +18,9 @@ import { User } from './entities/user.entity';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([WishlistItem]),
   ],
-  controllers: [UsersServiceController],
-  providers: [UsersService],
+  controllers: [WishlistServiceController],
+  providers: [WishlistServiceService],
 })
-export class UsersServiceModule { }
+export class WishlistServiceModule {}

@@ -43,16 +43,16 @@ services:
     networks:
       - backend
 
-  products-service:
+  wishlist-service:
     build:
       context: .
       dockerfile: Dockerfile
-    command: node dist/apps/products-service/main
-    container_name: products-service
+    command: node dist/apps/wishlist-service/main
+    container_name: wishlist-service
     env_file:
       - .env
     ports:
-      - "${PRODUCTS_TCP_PORT}:${PRODUCTS_TCP_PORT}"
+      - "${WISHLIST_TCP_PORT}:${WISHLIST_TCP_PORT}"
     networks:
       - backend
 
@@ -97,6 +97,22 @@ services:
       - backend
     depends_on:
       - postgres_db
+
+  affiliate-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/apps/affiliate-service/main
+    container_name: affiliate-service
+    env_file:
+      - .env
+    ports:
+      - "${AFFILIATE_TCP_PORT}:${AFFILIATE_TCP_PORT}"
+    networks:
+      - backend
+    depends_on:
+      - postgres_db
+
 
   api-gateway:
     build:
