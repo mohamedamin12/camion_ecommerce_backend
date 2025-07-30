@@ -5,11 +5,11 @@ WORKDIR /app
 # Copy root package files
 COPY package.json package-lock.json* ./
 
-# Copy shared dependencies
-COPY shared/ ./shared/
+# # Copy shared dependencies
+# COPY shared/ ./shared/
 
-# Copy the specific service source code
-COPY apps/cart-service/ ./apps/cart-service/
+# # Copy the specific service source code
+# COPY apps/cart-service/ ./apps/cart-service/
 
 # Install dependencies
 RUN npm install
