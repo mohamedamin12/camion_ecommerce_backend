@@ -40,6 +40,14 @@ import { WishlistController } from './controllers/wishlist.controller';
           port: Number(process.env.WISHLIST_TCP_PORT),
         },
       },
+      {
+        name: 'STORY_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: process.env.STORY_SERVICE_HOST,
+          port: Number(process.env.STORY_TCP_PORT),
+        },
+      },
     ]),
   ],
   controllers: [AppController, CartController, AffiliateController, WishlistController],

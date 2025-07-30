@@ -64,6 +64,15 @@
         "tsConfigPath": "apps/products-service/tsconfig.app.json"
       }
     },
+    "story-service": {
+      "type": "application",
+      "root": "apps/story-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/story-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/story-service/tsconfig.app.json"
+      }
+    },
     "users-service": {
       "type": "application",
       "root": "apps/users-service",
