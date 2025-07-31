@@ -19,6 +19,12 @@ async function bootstrap() {
     }),
   );
 
+  
+  app.enableCors({
+    origin: [],
+    credentials: true,
+  });
+
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
     options: {

@@ -1,14 +1,24 @@
-import { IsEmail, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsBoolean, IsDateString } from 'class-validator';
+import { UserRole } from '../entities/user.entity';
 
-export class FindUserDto {
-  @IsOptional()
-  @IsEmail({}, { message: 'Invalid email format' })
-  @ValidateIf((o) => !o.phone)
-  email?: string;
-
+export class FilterUsersDto {
   @IsOptional()
   @IsString()
-  @Matches(/^\+?[0-9]{10,15}$/, { message: 'Invalid phone number' })
-  @ValidateIf((o) => !o.email)
-  phone?: string;
+  identifier?: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsDateString()
+  joinedAfter?: Date;
+
+  @IsOptional()
+  @IsDateString()
+  joinedBefore?: Date;
 }

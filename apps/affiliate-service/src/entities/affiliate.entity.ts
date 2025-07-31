@@ -15,6 +15,15 @@ export class Affiliate {
   @Column({ unique: true })
   userId: string;
 
+  @Column()
+  fullName: string;
+
+  @Column()
+  gender: string;
+
+  @Column()
+  nationality: string;
+
   @Column({ type: 'enum', enum: AffiliateStatus, default: AffiliateStatus.PENDING })
   status: AffiliateStatus;
 

@@ -32,6 +32,7 @@ import { WishlistController } from "./controllers/wishlist.controller";
           },
         }),
         inject: [ConfigService],
+        imports: [ConfigModule],
       },
       {
         name: 'CART_SERVICE',
@@ -56,12 +57,12 @@ import { WishlistController } from "./controllers/wishlist.controller";
         inject: [ConfigService],
       },
       {
-        name: 'STORY_SERVICE',
+        name: 'ORDER_SERVICE',
         useFactory: (config: ConfigService) => ({
           transport: Transport.TCP,
           options: {
-            host: config.get('STORY_SERVICE_HOST'),
-            port: Number(config.get('STORY_TCP_PORT')),
+            host: config.get('ORDER_SERVICE_HOST'),
+            port: Number(config.get('ORDERS_TCP_PORT')),
           },
         }),
         inject: [ConfigService],

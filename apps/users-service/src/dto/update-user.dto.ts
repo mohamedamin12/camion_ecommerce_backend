@@ -1,6 +1,5 @@
-import { IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
-import { UserRole } from '../entities/user.entity';
 
+import { IsEmail, IsEnum, IsOptional, IsPhoneNumber } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -8,26 +7,19 @@ export class UpdateUserDto {
   email?: string;
 
   @IsOptional()
-  @IsPhoneNumber('EG') 
+  @IsPhoneNumber()
   phone?: string;
 
   @IsOptional()
-  @IsString()
-  firstName?: string;
+  fullName?: string;
 
   @IsOptional()
-  @IsString()
-  lastName?: string;
+  @IsEnum(['male', 'female'])
+  gender?: 'male' | 'female';
 
   @IsOptional()
-  @IsEnum(UserRole, { each: true })
-  roles?: UserRole[];
+  country?: string;
 
   @IsOptional()
-  @IsString()
-  facebookId?: string;
-
-  @IsOptional()
-  @IsString()
-  googleId?: string;
+  nationality?: string;
 }

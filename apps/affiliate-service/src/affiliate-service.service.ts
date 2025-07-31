@@ -78,6 +78,7 @@ export class AffiliateServiceService {
 
     return coupons;
   }
+  
 
   async deleteCoupon(couponId: string) {
     const coupon = await this.couponRepository.findOne({ where: { id: couponId }, relations: ['affiliate'] });

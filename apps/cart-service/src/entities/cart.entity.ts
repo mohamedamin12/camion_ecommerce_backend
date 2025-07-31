@@ -9,7 +9,7 @@ export class CartItem {
   userId: string;
 
   @Column()
-  productId: string; // From Buckydrop
+  productId: string;
 
   @Column()
   quantity: number;
@@ -22,6 +22,12 @@ export class CartItem {
 
   @Column({ type: 'float', nullable: true })
   price?: number;
+
+  @Column({ nullable: true })
+  couponCode?: string;
+
+  @Column({ type: 'float', nullable: true, default: 0 })
+  discountPercentage?: number;
 
   @CreateDateColumn()
   createdAt: Date;

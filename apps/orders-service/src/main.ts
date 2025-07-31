@@ -1,17 +1,24 @@
 import { NestFactory } from '@nestjs/core';
-import { OrdersServiceModule } from './orders-service.module';
+import { ValidationPipe } from '@nestjs/common';
+import * as dotenv from 'dotenv';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { OrderServiceModule } from './orders-service.module';
+
+dotenv.config();
+
+dotenv.config({ path: __dirname + '../../../.env' });
+
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(OrdersServiceModule, {
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(OrderServiceModule ,  {
     transport: Transport.TCP,
     options: {
-      host: '127.0.0.1',
-      port: 4004,
+      host:  process.env.TCP_BIND_HOST ,
+      port: Number(process.env.ORDERS_TCP_PORT || ""),
     },
-  });
-
+  })
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
   await app.listen();
-  console.log('Orders Service is running on TCP port 4004');
+
 }
 bootstrap();
