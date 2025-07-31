@@ -11,7 +11,7 @@ RUN npm install
 # 3. Copy ALL source code (including services)
 COPY . .
 
-RUN npm run build
+RUN npm run nest-build
 
 # Production stage
 FROM node:current-alpine3.22
