@@ -1,8 +1,11 @@
-import { Body, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Body, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { JwtService } from '@nestjs/jwt';
 
 
 @Injectable()
@@ -10,8 +13,51 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) { }
 
+  async register(dto: RegisterDto) {
+    const existing = await this.userRepository.findOne({
+      where: [{ email: dto.email }, { phone: dto.phone }],
+    });
+  
+    if (existing) throw new BadRequestException('User already exists');
+  
+    const user = this.userRepository.create(dto);
+    return this.userRepository.save(user);
+  }
+  
+  async login(dto: LoginDto) {
+    if (!dto.email && !dto.phone) {
+      throw new BadRequestException('Email or phone is required');
+    }
+
+    let user;
+    if (dto.email) {
+      user = await this.userRepository.findOne({ where: { email: dto.email } });
+    } else if (dto.phone) {
+      user = await this.userRepository.findOne({ where: { phone: dto.phone } });
+    }
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      accessToken: token,
+      user,
+    };
+  }
+  
   async getUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
@@ -30,7 +76,6 @@ export class UsersService {
       ],
     });
   }
-
 
   async updateUser(id: string, @Body() updateData: UpdateUserDto): Promise<User> {
     const user = await this.getUserById(id);

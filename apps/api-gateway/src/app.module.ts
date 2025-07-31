@@ -5,7 +5,6 @@ import { UserController } from "./controllers/users.controller";
 import { CartController } from "./controllers/cart.controller";
 import { AffiliateController } from "./controllers/affiliate.controller";
 import { WishlistController } from "./controllers/wishlist.controller";
-import { AuthController } from "./controllers/auth.controller";
 
 @Module({
   imports: [
@@ -67,17 +66,6 @@ import { AuthController } from "./controllers/auth.controller";
         }),
         inject: [ConfigService],
       },
-      {
-        name: 'AUTH_SERVICE',
-        useFactory: (config: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: config.get('AUTH_SERVICE_HOST'),
-            port: Number(config.get('AUTH_TCP_PORT')),
-          },
-        }),
-        inject: [ConfigService],
-      },
     ]),
   ],
   controllers: [
@@ -85,7 +73,6 @@ import { AuthController } from "./controllers/auth.controller";
     CartController,
     AffiliateController,
     WishlistController,
-    AuthController
   ],
 })
 export class AppModule {}

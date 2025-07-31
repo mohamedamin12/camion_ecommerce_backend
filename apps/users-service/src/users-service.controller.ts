@@ -1,15 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { UsersService } from './users-service.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserByAdminDto } from './dto/create-user.dto';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller()
 export class UsersServiceController {
   constructor(private readonly usersService: UsersService) { }
 
+  @MessagePattern({ cmd: 'register_user' })
+  register(@Payload() dto: RegisterDto) {
+    return this.usersService.register(dto);
+  }
 
+  @MessagePattern({ cmd: 'login_user' })
+  login(@Payload() dto: LoginDto) {
+    return this.usersService.login(dto);
+  }
 
   @MessagePattern({ cmd: 'get_users' })
   async getAllUsers() {

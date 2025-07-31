@@ -1,11 +1,23 @@
 import { Body, Controller, Delete, Get, Inject, Param, Patch, Post } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { LoginDto } from 'apps/users-service/src/dto/login.dto';
+import { RegisterDto } from 'apps/users-service/src/dto/register.dto';
 
 @Controller('users')
 export class UserController {
   constructor(
     @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,
-  ) {}
+  ) { }
+
+  @Post('auth/register')
+  register(@Body() body: RegisterDto) {
+    return this.usersClient.send({ cmd: 'register_user' }, body);
+  }
+
+  @Post('auth/login')
+  login(@Body() body: LoginDto) {
+    return this.usersClient.send({ cmd: 'login_user' }, body);
+  }
 
   @Get()
   async getAllUsers() {

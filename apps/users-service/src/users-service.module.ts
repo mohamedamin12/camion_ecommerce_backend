@@ -4,6 +4,7 @@ import { UsersService } from './users-service.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { User } from './entities/user.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,6 +20,10 @@ import { User } from './entities/user.entity';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User]),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '7d' },
+    }),
   ],
   controllers: [UsersServiceController],
   providers: [UsersService],

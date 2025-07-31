@@ -18,10 +18,7 @@ export class User {
   phone: string;
 
   @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
+  fullName: string;
 
   @Column({ default: true })
   isActive: boolean;
