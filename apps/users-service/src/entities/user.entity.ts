@@ -20,17 +20,12 @@ export class User {
   @Column()
   fullName: string;
 
-  @Column({ nullable: true })
-  gender: 'male' | 'female';
-
-  @Column({ nullable: true })
-  country: string;
-
-  @Column({ nullable: true })
-  nationality: string;
-
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({ nullable: true })
+  code: string;
+
 
   @Column({
     type: 'enum',

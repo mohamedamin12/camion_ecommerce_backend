@@ -1,0 +1,14 @@
+* [33m1fda84b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/otp[m[33m, [m[1;32motp[m[33m)[m adding otp service
+* [33m592e745[m[33m ([m[1;31morigin/main[m[33m)[m Add helmet for security and update affiliate service with new fields and endpoints. Refactor order service and API Gateway for improved role-based access control and integrate AuthModule across services.
+* [33m67d8061[m Enhance affiliate and order services by adding new fields and endpoints. Update package.json to include orders-service in the build process. Implement role-based access control in API Gateway controllers and improve user management with new filtering options in users-service. Remove deprecated story-service and clean up related files.
+* [33m83a8393[m Refactor authentication handling by removing AuthService and AuthController, and integrating user registration and login in the users-service. Update API Gateway to utilize new user authentication endpoints and add validation pipes for improved request handling. Modify docker-compose to remove auth-service and adjust related configurations.
+* [33m1326344[m Update Dockerfile to use 'nest-build' script for building services and add 'nest-build' command in package.json for specific service builds.
+* [33m06cd639[m Refactor API Gateway and Auth Service to use ConfigService for service configurations, add AuthController and AuthService, and update user controller naming. Remove unused environment variable handling in main.ts and clean up user entity.
+[31m|[m * [33m58022b4[m[33m ([m[1;31morigin/separate-dockers[m[33m)[m edits in docker
+[31m|[m * [33ma4bb3ae[m changes in cart
+[31m|[m * [33m262b248[m add docker file cart
+[31m|[m[31m/[m  
+* [33m81bf664[m Add story-service configuration to nest-cli.json and integrate STORY_SERVICE in API Gateway
+* [33ma0903fe[m Refactor services in docker-compose, add wishlist and affiliate services, and remove products service. Update API Gateway and related configurations accordingly.
+* [33m66ca797[m Add users-service to docker-compose and update API Gateway integration
+* [33mce458b4[m Sure! Pl
