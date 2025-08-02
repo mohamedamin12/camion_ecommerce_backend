@@ -25,6 +25,9 @@ export class CreateOrderDto {
   totalOrderPrice: number;
 
   @IsString()
+  currency: string;
+  
+  @IsString()
   @IsOptional()
   shippingAddress?: string;
 }

@@ -5,6 +5,7 @@ import { Order } from './entities/order.entity';
 import { AuthModule } from '@app/auth';
 import { OrdersController } from './orders-service.controller';
 import { OrdersService } from './orders-service.service';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { OrdersService } from './orders-service.service';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Order]),
-    AuthModule
+    AuthModule,
+    StripeModule.forRootAsync()
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

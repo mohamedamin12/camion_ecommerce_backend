@@ -1,6 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-
-
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('orders')
 export class Order {
@@ -19,7 +23,6 @@ export class Order {
     price: number;
   }>;
 
-
   @Column({ type: 'float', default: 0 })
   shippingPrice: number;
 
@@ -27,7 +30,13 @@ export class Order {
   totalOrderPrice: number;
 
   @Column({ default: 'card' })
-  paymentMethodType: string
+  paymentMethodType: string;
+
+  @Column({ nullable: true })
+  paymentIntentId: string;
+
+  @Column({ nullable: true })
+  paymentIntentStatus: string;
 
   @Column({ default: false })
   isPaid: boolean;

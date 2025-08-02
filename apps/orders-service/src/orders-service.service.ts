@@ -3,20 +3,33 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
+import { StripeService } from './stripe/stripe.controller';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    private readonly stripeService: StripeService,
   ) {}
 
   async createOrder(dto: CreateOrderDto) {
+    // Create a Stripe PaymentIntent for the amount
+    const paymentIntent = await this.stripeService.createPaymentIntent(
+      dto.totalOrderPrice, // Amount in cents!
+      dto.currency || 'usd',
+    );
     const order = this.orderRepository.create({
       ...dto,
-      paymentMethodType: 'card', 
+      paymentMethodType: 'card',
+      paymentIntentId: paymentIntent.id, // Save it for webhooks/reconciliation
+      paymentIntentStatus: paymentIntent.status,
     });
-    return this.orderRepository.save(order);
+    const savedOrder = await this.orderRepository.save(order);
+    return {
+      order: savedOrder,
+      clientSecret: paymentIntent.client_secret, // for Stripe Elements on frontend
+    };
   }
 
   async getOrdersByUser(userId: string) {
@@ -54,4 +67,3 @@ export class OrdersService {
     return { message: 'Order deleted successfully' };
   }
 }
-
