@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, Cre
 export enum UserRole {
   USER = 'user',
   ADMIN = 'admin',
-  AFFILIATE = 'affiliate' 
+  AFFILIATE = 'affiliate'
 }
 
 @Entity('users')
@@ -14,7 +14,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true , unique: true })
+  @Column({ nullable: true, unique: true })
   phone: string;
 
   @Column()
@@ -23,13 +23,17 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  code: string;
+
+
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.USER,
   })
   role: UserRole;
-  
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

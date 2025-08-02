@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Matches } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -9,4 +9,8 @@ export class LoginDto {
   @IsNotEmpty()
   @Matches(/^\+?\d+$/, { message: 'Phone must be numeric and optionally start with +' })
   phone: string;
+
+  @IsOptional() 
+  @IsString()
+  code?: string;
 }

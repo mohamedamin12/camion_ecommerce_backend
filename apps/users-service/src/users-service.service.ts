@@ -70,6 +70,7 @@ export class UsersService {
       msg: `Check Code on ${user.phone}!`,
     };
   }
+
   async verifyOTP(dto: LoginDto) {
     if (!dto.email && !dto.phone) {
       throw new BadRequestException('Email or phone is required');
@@ -104,6 +105,7 @@ export class UsersService {
       user,
     };
   }
+  
   async getUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
