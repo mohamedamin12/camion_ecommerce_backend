@@ -5,6 +5,8 @@ import { UserController } from "./controllers/users.controller";
 import { CartController } from "./controllers/cart.controller";
 import { AffiliateController } from "./controllers/affiliate.controller";
 import { WishlistController } from "./controllers/wishlist.controller";
+import { AuthModule } from "@app/auth";
+import { OrderController } from "./controllers/order.controller";
 
 @Module({
   imports: [
@@ -57,7 +59,7 @@ import { WishlistController } from "./controllers/wishlist.controller";
         inject: [ConfigService],
       },
       {
-        name: 'ORDER_SERVICE',
+        name: 'ORDERS_SERVICE',
         useFactory: (config: ConfigService) => ({
           transport: Transport.TCP,
           options: {
@@ -68,10 +70,12 @@ import { WishlistController } from "./controllers/wishlist.controller";
         inject: [ConfigService],
       },
     ]),
+    AuthModule
   ],
   controllers: [
     UserController,
     CartController,
+    OrderController,
     AffiliateController,
     WishlistController,
   ],

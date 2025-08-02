@@ -1,11 +1,11 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderService } from './orders-service.service';
+import { OrdersService } from './orders-service.service';
 
 @Controller()
-export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+export class OrdersController {
+  constructor(private readonly orderService: OrdersService) {}
 
   @MessagePattern({ cmd: 'create_order' })
   createOrder(@Payload() dto: CreateOrderDto) {

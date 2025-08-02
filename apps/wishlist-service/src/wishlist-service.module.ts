@@ -4,6 +4,7 @@ import { WishlistServiceService } from './wishlist-service.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WishlistItem } from './entities/wishlist.entity';
+import { AuthModule } from '@app/auth';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { WishlistItem } from './entities/wishlist.entity';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([WishlistItem]),
+    AuthModule
   ],
   controllers: [WishlistServiceController],
   providers: [WishlistServiceService],

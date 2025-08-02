@@ -4,6 +4,7 @@ import { CartServiceService } from './cart-service.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CartItem } from './entities/cart.entity';
+import { AuthModule } from '@app/auth';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { CartItem } from './entities/cart.entity';
         synchronize: true,
       }),
       TypeOrmModule.forFeature([CartItem]),
+      AuthModule
     ],
   controllers: [CartServiceController],
   providers: [CartServiceService],

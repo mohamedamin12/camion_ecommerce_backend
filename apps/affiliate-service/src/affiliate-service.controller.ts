@@ -10,7 +10,7 @@ import { UpdateAffiliateDto } from './dto/update-affiliate.dto';
 export class AffiliateServiceController {
   constructor(private readonly affiliateService: AffiliateServiceService) { }
 
-  @MessagePattern({ cmd: 'affiliate_request' })
+  @MessagePattern({ cmd: 'create_affiliate_request' })
   handleAffiliateRequest(@Payload() dto: CreateAffiliateRequestDto) {
     return this.affiliateService.createAffiliateRequest(dto);
   }
@@ -28,6 +28,11 @@ export class AffiliateServiceController {
   @MessagePattern({ cmd: 'create_coupon' })
   handleCreateCoupon(@Payload() dto: CreateCouponDto) {
     return this.affiliateService.createCoupon(dto);
+  }
+
+  @MessagePattern({ cmd: 'delete_coupon' })
+  deleteCoupon(@Payload() id: string) {
+    return this.affiliateService.deleteCoupon(id);
   }
 
   @MessagePattern({ cmd: 'update_affiliate' })

@@ -17,12 +17,12 @@ import { Roles } from 'libs/auth/src/roles.decorator';
 import { RolesGuard } from 'libs/auth/src/roles.guard';
 
 @Controller('orders')
-export class CartController {
-  constructor(@Inject('ORDER_SERVICE') private readonly orderClient: ClientProxy) {}
+export class OrderController {
+  constructor(@Inject('ORDERS_SERVICE') private readonly orderClient: ClientProxy) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.USER || UserRole.AFFILIATE )
-  @Post()
+  @Roles(UserRole.USER , UserRole.AFFILIATE )
+  @Post('/create')
   createOrder(@Body() dto: CreateOrderDto) {
     return this.orderClient.send({ cmd: 'create_order' }, dto);
   }
@@ -54,7 +54,7 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.USER || UserRole.AFFILIATE || UserRole.ADMIN )
+  @Roles(UserRole.USER , UserRole.AFFILIATE , UserRole.ADMIN )
   @Delete('/:id')
   deleteOrder(@Param('id') id: string) {
     return this.orderClient.send({ cmd: 'delete_order' }, id);

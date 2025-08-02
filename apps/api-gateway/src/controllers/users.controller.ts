@@ -40,7 +40,7 @@ export class UserController {
     return this.usersClient.send({ cmd: 'get_users' }, {});
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getUserById(@Param('id') id: string) {
     return this.usersClient.send({ cmd: 'get_user_by_id' }, id);

@@ -1,5 +1,8 @@
 import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { CreateAffiliateRequestDto } from 'apps/affiliate-service/src/dto/create-affiliate-request.dto';
+import { CreateCouponDto } from 'apps/affiliate-service/src/dto/create-coupon.dto';
+import { ReviewAffiliateRequestDto } from 'apps/affiliate-service/src/dto/review-affiliate-request.dto ';
 import { UserRole } from 'apps/users-service/src/entities/user.entity';
 import { JwtAuthGuard } from 'libs/auth/src';
 import { Roles } from 'libs/auth/src/roles.decorator';
@@ -14,7 +17,7 @@ export class AffiliateController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER)
   @Post('request')
-  async requestAffiliate(@Body() dto: any) {
+  async requestAffiliate(@Body() dto: CreateAffiliateRequestDto) {
     return this.affiliateClient.send({ cmd: 'create_affiliate_request' }, dto);
   }
 
@@ -25,15 +28,17 @@ export class AffiliateController {
     return this.affiliateClient.send({ cmd: 'get_pending_affiliate_requests' }, {});
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post('requests/review')
-  async reviewRequest(@Body() dto: any) {
+  async reviewRequest(@Body() dto: ReviewAffiliateRequestDto) {
     return this.affiliateClient.send({ cmd: 'review_affiliate_request' }, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN || UserRole.AFFILIATE )
+  @Roles(UserRole.ADMIN , UserRole.AFFILIATE )
   @Post('coupon')
-  async createCoupon(@Body() dto: any) {
+  async createCoupon(@Body() dto: CreateCouponDto) {
     return this.affiliateClient.send({ cmd: 'create_coupon' }, dto);
   }
 
@@ -44,6 +49,7 @@ export class AffiliateController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete('coupon/:id')
   async deleteCoupon(@Param('id') couponId: string) {
     return this.affiliateClient.send({ cmd: 'delete_coupon' }, couponId);
@@ -57,7 +63,7 @@ export class AffiliateController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN || UserRole.AFFILIATE )
+  @Roles(UserRole.ADMIN , UserRole.AFFILIATE )
   @Delete(':id')
   async deleteAffiliate(@Param('id') id: string) {
     return this.affiliateClient.send({ cmd: 'delete_affiliate' }, id);

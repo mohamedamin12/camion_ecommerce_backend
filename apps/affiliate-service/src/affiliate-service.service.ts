@@ -22,16 +22,20 @@ export class AffiliateServiceService {
     if (existing) {
       throw new ConflictException('You already submitted a request or you are an affiliate');
     }
-
+  
     const affiliate = this.affiliateRepository.create({
       userId: dto.userId,
+      fullName: dto.fullName,
+      gender: dto.gender,
+      nationality: dto.nationality,
+      bio: dto.bio,
       status: AffiliateStatus.PENDING,
       totalEarnings: 0,
       couponsCreated: 0,
     });
-
+  
     return this.affiliateRepository.save(affiliate);
-  }
+  }  
 
   async getPendingRequests() {
     return this.affiliateRepository.find({ where: { status: AffiliateStatus.PENDING } });
@@ -67,7 +71,7 @@ export class AffiliateServiceService {
     affiliate.couponsCreated += 1;
     await this.affiliateRepository.save(affiliate);
 
-    return this.affiliateRepository.save(coupon);
+    return this.couponRepository.save(coupon);
   }
 
   async getCouponsByAffiliate(affiliateId: string) {
@@ -81,19 +85,21 @@ export class AffiliateServiceService {
   
 
   async deleteCoupon(couponId: string) {
-    const coupon = await this.couponRepository.findOne({ where: { id: couponId }, relations: ['affiliate'] });
-
+    const coupon = await this.couponRepository.findOne({
+      where: { id: couponId },
+      relations: ['affiliate'],
+    });
+  
     if (!coupon) throw new NotFoundException('Coupon not found');
-
-
-    // update affiliate.couponsCreated
-    const affiliate = coupon.affiliate;
-    affiliate.couponsCreated -= 1;
-    await this.affiliateRepository.save(affiliate);
-
+  
+    if (coupon.affiliate) {
+      coupon.affiliate.couponsCreated = Math.max(0, coupon.affiliate.couponsCreated - 1); // safe
+      await this.affiliateRepository.save(coupon.affiliate);
+    }
+  
     return this.couponRepository.remove(coupon);
   }
-
+  
   async getAllCoupons() {
     return this.couponRepository.find({ relations: ['affiliate'] });
   }

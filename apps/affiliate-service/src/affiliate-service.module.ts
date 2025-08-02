@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Affiliate } from './entities/affiliate.entity';
 import { Coupon } from './entities/coupon.entity';
+import { AuthModule } from '@app/auth';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Coupon } from './entities/coupon.entity';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Affiliate, Coupon]),
+    AuthModule
   ],
   controllers: [AffiliateServiceController],
   providers: [AffiliateServiceService],

@@ -1,8 +1,10 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
+import { JwtAuthGuard } from '@app/auth';
+import helmet from 'helmet';
 
 dotenv.config();
 dotenv.config({ path: __dirname + '../../../.env' });
@@ -10,6 +12,10 @@ dotenv.config({ path: __dirname + '../../../.env' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(process.env.API_GATEWAY_HTTP_PORT || 5000);
+  app.useGlobalGuards(new JwtAuthGuard(Reflector));
+
+  app.use(helmet());
+
 
   app.useGlobalPipes(
     new ValidationPipe({
