@@ -26,6 +26,8 @@ export class UsersService {
   ) { }
 
   async register(dto: RegisterDto) {
+    if(! dto.email || !dto.phone)
+      throw new BadRequestException('Email and Phone number are required');
     const existing = await this.userRepository.findOne({
       where: [{ email: dto.email }, { phone: dto.phone }],
     });
