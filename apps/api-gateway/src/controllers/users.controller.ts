@@ -49,7 +49,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN )
   @Post('find')
-  async findUsersByFilters(@Body() body: FilterUserDto) {
+  async findUsersByFilters(@Body() body: FilterUsersDto) {
     return this.usersClient.send({ cmd: 'find_user_by_identifier' }, body);
   }
 
