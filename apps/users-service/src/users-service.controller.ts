@@ -1,15 +1,16 @@
 import { Controller } from '@nestjs/common';
 import { UsersService } from './users-service.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyDto } from './dto/verifyOTP.dto';
+import { FilterUsersDto } from './dto/filter-users.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller()
 export class UsersServiceController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @MessagePattern({ cmd: 'register_user' })
   register(@Payload() dto: RegisterDto) {
@@ -20,6 +21,13 @@ export class UsersServiceController {
   login(@Payload() dto: LoginDto) {
     return this.usersService.login(dto);
   }
+
+  @MessagePattern({ cmd: 'create_user' })
+  async createUser(@Payload() dto: CreateUserDto) {
+    return this.usersService.createUser(dto);
+  }
+
+
   @MessagePattern({ cmd: 'verify_user' })
   verifyOTP(@Payload() dto: VerifyDto) {
     return this.usersService.verifyOTP(dto);
@@ -34,14 +42,11 @@ export class UsersServiceController {
     return this.usersService.getUserById(id);
   }
 
-  @MessagePattern({ cmd: 'find_by_email_or_phone' })
-  async findByEmailOrPhone(@Payload() data: FindUserDto) {
-    const identifier = data.email || data.phone;
-    if (!identifier) {
-      throw new Error('Email or phone is required');
-    }
-    return this.usersService.findByEmailOrPhone(identifier);
+  @MessagePattern({ cmd: 'find_user_by_identifier' })
+  async findUsersByFilters(@Payload() filters: FilterUsersDto) {
+    return this.usersService.findUsersByFilters(filters);
   }
+
 
   @MessagePattern({ cmd: 'update_user' })
   async updateUser(

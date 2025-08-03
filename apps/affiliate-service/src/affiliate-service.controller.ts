@@ -1,10 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { AffiliateServiceService } from './affiliate-service.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateAffiliateRequestDto } from './dto/create-affiliate-request.dto';
 import { ReviewAffiliateRequestDto } from './dto/review-affiliate-request.dto ';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateAffiliateDto } from './dto/update-affiliate.dto';
+import { SearchCouponsDto } from './dto/search-coupons.dto';
 
 @Controller()
 export class AffiliateServiceController {
@@ -29,6 +30,12 @@ export class AffiliateServiceController {
   handleCreateCoupon(@Payload() dto: CreateCouponDto) {
     return this.affiliateService.createCoupon(dto);
   }
+
+  @MessagePattern({ cmd: 'search_coupons' })
+  searchCoupons(@Payload() dto: SearchCouponsDto) {
+    return this.affiliateService.searchCoupons(dto);
+  }
+
 
   @MessagePattern({ cmd: 'delete_coupon' })
   deleteCoupon(@Payload() id: string) {
