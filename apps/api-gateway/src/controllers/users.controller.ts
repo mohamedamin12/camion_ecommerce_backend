@@ -5,6 +5,7 @@ import { FilterUsersDto } from 'apps/users-service/src/dto/find-user.dto';
 import { LoginDto } from 'apps/users-service/src/dto/login.dto';
 import { RegisterDto } from 'apps/users-service/src/dto/register.dto';
 import { UpdateUserDto } from 'apps/users-service/src/dto/update-user.dto';
+import { VerifyDto } from 'apps/users-service/src/dto/verifyOTP.dto';
 import { UserRole } from 'apps/users-service/src/entities/user.entity';
 import { JwtAuthGuard } from 'libs/auth/src';
 import { Roles } from 'libs/auth/src/roles.decorator';
@@ -24,6 +25,11 @@ export class UserController {
   @Post('auth/login')
   login(@Body() body: LoginDto) {
     return this.usersClient.send({ cmd: 'login_user' }, body);
+  }
+
+  @Post('auth/verify')
+  verify(@Body() body: VerifyDto) {
+    return this.usersClient.send({ cmd: 'verify_user' }, body);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

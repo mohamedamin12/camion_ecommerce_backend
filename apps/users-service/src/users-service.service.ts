@@ -13,7 +13,6 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { OTPService } from './otp-service';
-import { VerifyDto } from './dto/verifyOTP.dto';
 @Injectable()
 export class UsersService {
   constructor(
