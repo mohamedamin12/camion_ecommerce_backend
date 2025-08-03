@@ -11,22 +11,28 @@ dotenv.config({ path: __dirname + '../../../.env' });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.API_GATEWAY_HTTP_PORT || 5000);
-  app.useGlobalGuards(new JwtAuthGuard(Reflector));
-
+    
   app.use(helmet());
-
+  
+  app.useGlobalGuards(new JwtAuthGuard(Reflector));
+  
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+  
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, 
-      forbidNonWhitelisted: true, 
-      transform: true, 
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
-
   
-  app.enableCors();
-
+  
+  await app.listen(process.env.API_GATEWAY_HTTP_PORT || 5000);
+  
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
     options: {
