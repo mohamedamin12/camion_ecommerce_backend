@@ -11,7 +11,7 @@ export class OTPService {
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN,
     );
-    this.verifySid = process.env.TWILIO_VERIFY_SID;
+    this.verifySid = process.env.TWILIO_VERIFY_SID || "";
   }
   async sendSms(to: string, body: string): Promise<any> {
     return this.client.messages.create({
