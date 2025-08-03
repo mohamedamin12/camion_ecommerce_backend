@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateUserDto } from 'apps/users-service/src/dto/create-user.dto';
-import { FilterUsersDto } from 'apps/users-service/src/dto/find-user.dto';
+import { FilterUsersDto } from 'apps/users-service/src/dto/filter-users.dto';
 import { LoginDto } from 'apps/users-service/src/dto/login.dto';
 import { RegisterDto } from 'apps/users-service/src/dto/register.dto';
 import { UpdateUserDto } from 'apps/users-service/src/dto/update-user.dto';
@@ -42,32 +42,32 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN )
   @Get()
-  async getAllUsers() {
+   getAllUsers() {
     return this.usersClient.send({ cmd: 'get_users' }, {});
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+   getUserById(@Param('id') id: string) {
     return this.usersClient.send({ cmd: 'get_user_by_id' }, id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN )
   @Post('find')
-  async findUsersByFilters(@Body() body: FilterUsersDto) {
+   findUsersByFilters(@Body() body: FilterUsersDto) {
     return this.usersClient.send({ cmd: 'find_user_by_identifier' }, body);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
-  async updateUser(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
+   updateUser(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
     return this.usersClient.send({ cmd: 'update_user' }, { id, updateData });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+   deleteUser(@Param('id') id: string) {
     return this.usersClient.send({ cmd: 'delete_user' }, id);
   }
 }

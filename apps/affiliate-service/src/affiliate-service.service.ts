@@ -7,6 +7,7 @@ import { ReviewAffiliateRequestDto } from './dto/review-affiliate-request.dto ';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { Coupon } from './entities/coupon.entity';
 import { UpdateAffiliateDto } from './dto/update-affiliate.dto';
+import { SearchCouponsDto } from './dto/search-coupons.dto';
 
 @Injectable()
 export class AffiliateServiceService {
@@ -83,6 +84,16 @@ export class AffiliateServiceService {
     return coupons;
   }
   
+  async searchCoupons(filters: SearchCouponsDto) {
+  const query = this.couponRepository.createQueryBuilder('coupon')
+    .leftJoinAndSelect('coupon.affiliate', 'affiliate');
+
+  if (filters.code) {
+    query.andWhere('LOWER(coupon.code) LIKE LOWER(:code)', { code: `%${filters.code}%` });
+  }
+  return await query.getMany();
+}
+
 
   async deleteCoupon(couponId: string) {
     const coupon = await this.couponRepository.findOne({

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,  CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export enum UserRole {
   USER = 'user',
@@ -34,6 +34,7 @@ export class User {
   })
   role: UserRole;
 
+  
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

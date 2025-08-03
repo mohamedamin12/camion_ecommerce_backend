@@ -1,11 +1,6 @@
 import { IsEmail, IsOptional, IsPhoneNumber, IsString, IsEnum } from 'class-validator';
 import { UserRole } from '../entities/user.entity';
 
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-}
-
 export class CreateUserDto {
   @IsEmail()
   email: string;
@@ -21,8 +16,8 @@ export class CreateUserDto {
   role?: UserRole;
 
   @IsOptional()
-  @IsEnum(Gender)
-  gender?: Gender;
+  @IsString()
+  gender?: string;
 
   @IsOptional()
   @IsString()
@@ -31,4 +26,6 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   country?: string;
+
+  
 }
