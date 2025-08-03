@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateUserDto } from 'apps/users-service/src/dto/create-user.dto';
-import { FilterUserDto } from 'apps/users-service/src/dto/find-user.dto';
+import { FilterUsersDto } from 'apps/users-service/src/dto/find-user.dto';
 import { LoginDto } from 'apps/users-service/src/dto/login.dto';
 import { RegisterDto } from 'apps/users-service/src/dto/register.dto';
 import { UpdateUserDto } from 'apps/users-service/src/dto/update-user.dto';

@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
 
-export class FindUserDto {
+export class FindUsersDto {
   @IsOptional()
   @IsEmail({}, { message: 'Invalid email format' })
   @ValidateIf((o) => !o.phone)
