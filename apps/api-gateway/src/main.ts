@@ -16,7 +16,6 @@ async function bootstrap() {
 
   app.use(helmet());
 
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, 
@@ -26,10 +25,7 @@ async function bootstrap() {
   );
 
   
-  app.enableCors({
-    origin: [],
-    credentials: true,
-  });
+  app.enableCors();
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
