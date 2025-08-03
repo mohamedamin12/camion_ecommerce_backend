@@ -14,7 +14,7 @@ async function bootstrap() {
     
   app.use(helmet());
   
-  app.useGlobalGuards(new JwtAuthGuard(Reflector));
+  // app.useGlobalGuards(new JwtAuthGuard(Reflector));
   
   app.enableCors({
     origin: '*',
