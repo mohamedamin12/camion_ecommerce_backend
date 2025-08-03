@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { UsersService } from './users-service.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { FindUsersDto } from './dto/find-user.dto';
+import { FilterUsersDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -35,7 +35,7 @@ export class UsersServiceController {
   }
 
   @MessagePattern({ cmd: 'find_by_email_or_phone' })
-  async findByEmailOrPhone(@Payload() data: FindUsersDto) {
+  async findByEmailOrPhone(@Payload() data: FilterUsersDto) {
     const identifier = data.email || data.phone;
     if (!identifier) {
       throw new Error('Email or phone is required');
