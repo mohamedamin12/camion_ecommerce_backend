@@ -12,16 +12,16 @@ dotenv.config({ path: __dirname + '../../../.env' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
     
-  app.use(helmet());
   
   // app.useGlobalGuards(new JwtAuthGuard(Reflector));
   
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
   
+  app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
