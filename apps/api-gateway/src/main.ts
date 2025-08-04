@@ -17,7 +17,7 @@ async function bootstrap() {
   // app.useGlobalGuards(new JwtAuthGuard(Reflector));
   
   app.enableCors({
-    origin: '*',
+    origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
