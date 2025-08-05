@@ -23,7 +23,6 @@ export class AffiliateServiceController {
 
   @MessagePattern({ cmd: 'affiliate.getCouponByCode' })
   getCouponByCode(@Payload() {code}: { code: string }) {
-        console.log('🎫  طلب كوبون:', code);
     return this.affiliateService.getCouponByCode(code);
   }
 
