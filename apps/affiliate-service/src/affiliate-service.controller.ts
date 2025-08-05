@@ -21,6 +21,13 @@ export class AffiliateServiceController {
     return this.affiliateService.getPendingRequests();
   }
 
+  @MessagePattern({ cmd: 'affiliate.getCouponByCode' })
+  getCouponByCode(@Payload() {code}: { code: string }) {
+        console.log('🎫  طلب كوبون:', code);
+    return this.affiliateService.getCouponByCode(code);
+  }
+
+
   @MessagePattern({ cmd: 'review_affiliate_request' })
   handleReviewRequest(@Payload() dto: ReviewAffiliateRequestDto) {
     return this.affiliateService.reviewAffiliateRequest(dto);
@@ -36,7 +43,7 @@ export class AffiliateServiceController {
     return this.affiliateService.searchCoupons(dto);
   }
 
-  
+
 
   @MessagePattern({ cmd: 'delete_coupon' })
   deleteCoupon(@Payload() id: string) {

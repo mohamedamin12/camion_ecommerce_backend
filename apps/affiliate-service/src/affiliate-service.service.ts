@@ -72,6 +72,12 @@ export class AffiliateServiceService {
     }
   }
 
+  async getCouponByCode(code: string) {
+  const coupon = await this.couponRepository.findOne({ where: { code, isActive: true } });
+  if (!coupon) return null;
+  return { code: coupon.code, discountPercentage: coupon.discountPercentage };
+}
+
   async reviewAffiliateRequest(dto: ReviewAffiliateRequestDto) {
     try {
       const affiliate = await this.affiliateRepository.findOne({ where: { id: dto.affiliateId } });

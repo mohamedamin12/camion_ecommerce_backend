@@ -23,6 +23,8 @@ export class WishlistController {
     return this.wishlistClient.send({ cmd: 'add_to_wishlist' }, body);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.USER, UserRole.AFFILIATE)
   @Post('check-product')
   checkProductInWishlist(
     @Body() dto: CheckProductInWishlistDto,

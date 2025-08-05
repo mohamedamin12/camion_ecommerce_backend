@@ -43,6 +43,19 @@ export class CartController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.AFFILIATE)
+  @Post('apply-coupon')
+  applyCouponToCart(
+    @Body() dto: { couponCode: string },
+    @CurrentUserId() userId: string,
+  ) {
+    return this.cartClient.send(
+      { cmd: 'apply_coupon_to_cart' },
+      { userId, couponCode: dto.couponCode },
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.USER, UserRole.AFFILIATE)
   @Patch('update')
   updateQuantity(@Body() body: UpdateCartItemDto) {
     return this.cartClient.send({ cmd: 'update_cart_quantity' }, body);
