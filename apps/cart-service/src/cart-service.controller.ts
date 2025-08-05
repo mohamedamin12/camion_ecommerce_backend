@@ -29,4 +29,14 @@ export class CartServiceController {
   getCart(@Payload() dto: GetUserCartDto) {
     return this.cartService.getCart(dto);
   }
+
+  @MessagePattern({ cmd: 'apply_coupon_to_cart' })
+  applyCouponToCart(@Payload() { userId, couponCode }: { userId: string; couponCode: string }) {
+    return this.cartService.applyCouponToCart(userId, couponCode);
+  }
+
+  @MessagePattern({ cmd: 'clear_cart' })
+  clearCart(@Payload() userId: string) {
+    return this.cartService.clearCart(userId);
+  }
 }

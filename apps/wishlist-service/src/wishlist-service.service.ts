@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WishlistItem } from './entities/wishlist.entity';
@@ -11,30 +12,53 @@ export class WishlistServiceService {
   constructor(
     @InjectRepository(WishlistItem)
     private readonly wishlistRepository: Repository<WishlistItem>,
-  ) {}
+  ) { }
 
   async addToWishlist(dto: AddToWishlistDto) {
-    const exists = await this.wishlistRepository.findOne({
-      where: { userId: dto.userId, productId: dto.productId },
-    });
+    try {
+      const exists = await this.wishlistRepository.findOne({
+        where: { userId: dto.userId, productId: dto.productId },
+      });
 
-    if (exists) return exists;
+      if (exists) return exists;
 
-    const item = this.wishlistRepository.create(dto);
-    return this.wishlistRepository.save(item);
+      const item = this.wishlistRepository.create(dto);
+      return await this.wishlistRepository.save(item);
+    } catch (error) {
+      return new BadRequestException(error.message || 'Failed to add to wishlist');
+    }
   }
 
   async removeFromWishlist(dto: RemoveFromWishlistDto) {
-    const item = await this.wishlistRepository.findOne({
-      where: { userId: dto.userId, productId: dto.productId },
-    });
+    try {
+      const item = await this.wishlistRepository.findOne({
+        where: { userId: dto.userId, productId: dto.productId },
+      });
 
-    if (!item) throw new NotFoundException('Item not found in wishlist');
+      if (!item) throw new NotFoundException('Item not found in wishlist');
 
-    return this.wishlistRepository.remove(item);
+      return this.wishlistRepository.remove(item);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      return new BadRequestException(error.message || 'Failed to remove from wishlist');
+    }
+
   }
 
   async getWishlist(dto: GetUserWishlistDto) {
-    return this.wishlistRepository.find({ where: { userId: dto.userId } });
+    try {
+      if (!dto.userId) {
+        throw new BadRequestException('User ID is required');
+      }
+      return this.wishlistRepository.find({ where: { userId: dto.userId } });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      return new BadRequestException(error.message || 'Failed to retrieve wishlist');
+    
+    }
   }
 }

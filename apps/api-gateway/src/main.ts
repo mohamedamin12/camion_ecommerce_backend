@@ -1,9 +1,9 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
-import { JwtAuthGuard } from '@app/auth';
+// import { JwtAuthGuard } from '@app/auth';
 import helmet from 'helmet';
 
 dotenv.config();
