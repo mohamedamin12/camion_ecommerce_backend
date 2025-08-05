@@ -12,7 +12,6 @@ dotenv.config({ path: __dirname + '../../../.env' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
     
-  app.use(helmet());
   
   // app.useGlobalGuards(new JwtAuthGuard(Reflector));
   
@@ -22,6 +21,7 @@ async function bootstrap() {
     credentials: true,
   });
   
+  app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

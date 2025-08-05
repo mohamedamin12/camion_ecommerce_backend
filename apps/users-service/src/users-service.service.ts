@@ -8,7 +8,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Between, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  Between,
+  FindOptionsWhere,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -24,29 +31,19 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     private jwtService: JwtService,
     private otpService: OTPService,
-  ) { }
+  ) {}
 
   async register(dto: RegisterDto) {
-    try {
-      if (!dto.email || !dto.phone) {
-        throw new BadRequestException('Email and Phone number are required');
-      }
-      const existing = await this.userRepository.findOne({
-        where: [{ email: dto.email }, { phone: dto.phone }],
-      });
+    if(! dto.email || !dto.phone)
+      throw new BadRequestException('Email and Phone number are required');
+    const existing = await this.userRepository.findOne({
+      where: [{ email: dto.email }, { phone: dto.phone }],
+    });
 
-      if (existing) {
-        throw new BadRequestException('User already exists');
-      }
+    if (existing) throw new BadRequestException('User already exists');
 
-      const user = this.userRepository.create(dto);
-      return await this.userRepository.save(user);
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        return error;
-      }
-      return new BadRequestException(error.message || 'Registration failed');
-    }
+    const user = this.userRepository.create(dto);
+    return this.userRepository.save(user);
   }
 
   async login(dto: LoginDto) {
@@ -88,7 +85,6 @@ export class UsersService {
       }
       return new BadRequestException('Login failed');
     }
-
   }
 
   async verifyOTP(dto: VerifyDto) {
@@ -134,29 +130,22 @@ export class UsersService {
 
   }
 
-  async createUser(dto: CreateUserDto): Promise<User | BadRequestException> {
-    try {
-      const existing = await this.userRepository.findOne({
-        where: [
-          { email: dto.email },
-          { phone: dto.phone },
-        ],
-      });
+  async createUser(dto: CreateUserDto): Promise<User> {
+    const existing = await this.userRepository.findOne({
+      where: [
+        { email: dto.email },
+        { phone: dto.phone },
+      ],
+    });
 
       if (existing) {
         throw new BadRequestException('User already exists');
       }
 
-      const user = this.userRepository.create(dto);
-      const savedUser = await this.userRepository.save(user);
-      return savedUser;
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      return new BadRequestException(error.message || 'Create user failed');
-    }
+    const user = this.userRepository.create(dto);
+    return this.userRepository.save(user);
   }
+
 
   async getUsers(): Promise<User[] | BadRequestException> {
     try {
@@ -183,30 +172,30 @@ export class UsersService {
     try {
       const where: FindOptionsWhere<User>[] = [];
 
-      if (filters.identifier) {
-        const pattern = ILike(`%${filters.identifier}%`);
-        where.push(
-          { email: pattern },
-          { phone: pattern },
-          { fullName: pattern }
-        );
-      }
+    if (filters.identifier) {
+      const pattern = ILike(`%${filters.identifier}%`);
+      where.push(
+        { email: pattern },
+        { phone: pattern },
+        { fullName: pattern }
+      );
+    }
 
-      const commonFilters: Partial<FindOptionsWhere<User>> = {};
-      if (filters.role) commonFilters.role = filters.role;
-      if (typeof filters.isActive === 'boolean') commonFilters.isActive = filters.isActive;
+    const commonFilters: Partial<FindOptionsWhere<User>> = {};
+    if (filters.role) commonFilters.role = filters.role;
+    if (typeof filters.isActive === 'boolean') commonFilters.isActive = filters.isActive;
 
-      if (filters.joinedAfter && filters.joinedBefore) {
-        commonFilters.createdAt = Between(new Date(filters.joinedAfter), new Date(filters.joinedBefore));
-      } else if (filters.joinedAfter) {
-        commonFilters.createdAt = MoreThanOrEqual(new Date(filters.joinedAfter));
-      } else if (filters.joinedBefore) {
-        commonFilters.createdAt = LessThanOrEqual(new Date(filters.joinedBefore));
-      }
+    if (filters.joinedAfter && filters.joinedBefore) {
+      commonFilters.createdAt = Between(new Date(filters.joinedAfter), new Date(filters.joinedBefore));
+    } else if (filters.joinedAfter) {
+      commonFilters.createdAt = MoreThanOrEqual(new Date(filters.joinedAfter));
+    } else if (filters.joinedBefore) {
+      commonFilters.createdAt = LessThanOrEqual(new Date(filters.joinedBefore));
+    }
 
-      const combinedWhere = where.length > 0
-        ? where.map((w) => ({ ...w, ...commonFilters }))
-        : [commonFilters];
+    const combinedWhere = where.length > 0
+      ? where.map((w) => ({ ...w, ...commonFilters }))
+      : [commonFilters];
 
       return this.userRepository.find({ where: combinedWhere });
     } catch (error) {
