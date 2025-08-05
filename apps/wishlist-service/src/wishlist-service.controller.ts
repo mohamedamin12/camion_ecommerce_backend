@@ -7,11 +7,18 @@ import { GetUserWishlistDto } from './dto/get-user-wishlist.dto';
 
 @Controller()
 export class WishlistServiceController {
-  constructor(private readonly wishlistService: WishlistServiceService) {}
+  constructor(private readonly wishlistService: WishlistServiceService) { }
 
   @MessagePattern({ cmd: 'add_to_wishlist' })
   addToWishlist(@Payload() dto: AddToWishlistDto) {
     return this.wishlistService.addToWishlist(dto);
+  }
+
+  @MessagePattern({ cmd: 'wishlist.isProductInWishlist' })
+  isProductInWishlist(
+    @Payload() data: { userId: string; productId: string },
+  ) {
+    return this.wishlistService.isProductInWishlist(data.userId, data.productId);
   }
 
   @MessagePattern({ cmd: 'remove_from_wishlist' })

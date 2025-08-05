@@ -40,6 +40,13 @@ export class CartServiceService {
     }
   }
 
+  async isProductInCart(userId: string, productId: string) {
+  const cartItem = await this.cartRepository.findOne({
+    where: { userId, productId },
+  });
+  return !!cartItem;
+  }
+
   async updateQuantity(dto: UpdateCartItemDto) {
     try {
       const cartItem = await this.cartRepository.findOne({

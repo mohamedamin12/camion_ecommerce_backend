@@ -8,11 +8,16 @@ import { GetUserCartDto } from './dto/get-user-cart.dto';
 
 @Controller()
 export class CartServiceController {
-  constructor(private readonly cartService: CartServiceService) {}
+  constructor(private readonly cartService: CartServiceService) { }
 
   @MessagePattern({ cmd: 'add_to_cart' })
   addToCart(@Payload() dto: AddToCartDto) {
     return this.cartService.addToCart(dto);
+  }
+
+  @MessagePattern({ cmd: 'cart.isProductInCart' })
+  isProductInCart(@Payload() data: { userId: string; productId: string }) {
+    return this.cartService.isProductInCart(data.userId, data.productId);
   }
 
   @MessagePattern({ cmd: 'update_cart_quantity' })

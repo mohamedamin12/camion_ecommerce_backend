@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,6 +29,17 @@ export class WishlistServiceService {
       return new BadRequestException(error.message || 'Failed to add to wishlist');
     }
   }
+
+  async isProductInWishlist(userId: string, productId: string): Promise<boolean> {
+  try {
+    const wishlistItem = await this.wishlistRepository.findOne({
+      where: { userId, productId },
+    });
+    return !!wishlistItem;
+  } catch (error) {
+    return false;
+  }
+}
 
   async removeFromWishlist(dto: RemoveFromWishlistDto) {
     try {
