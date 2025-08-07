@@ -67,13 +67,10 @@ export class UsersService {
       console.log('Generated OTP:', OTP);
       await this.userRepository.save(user);
 
-      return { success: true, msg: `Check Code on ${user.phone}!`, otp: OTP };
+      await this.otpService.sendSms(user.phone, `Camion Verification code ${OTP}`);
+      console.log('SMS sent to:', user.phone);
 
-
-      // await this.otpService.sendSms(user.phone, `Camion Verification code ${OTP}`);
-      // console.log('SMS sent to:', user.phone);
-
-      // return { success: true, msg: `Check Code on ${user.phone}!` };
+      return { success: true, msg: `Check Code on ${user.phone}!` };
     } catch (error) {
       console.error('Login error at login');
       throw toRpc(error, 'Login failed');
