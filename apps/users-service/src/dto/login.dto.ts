@@ -6,8 +6,7 @@ export class LoginDto {
   email: string;
 
   @IsPhoneNumber()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Phone is required' })
   @Matches(/^\+?\d+$/, { message: 'Phone must be numeric and optionally start with +' })
   phone: string;
-
 }

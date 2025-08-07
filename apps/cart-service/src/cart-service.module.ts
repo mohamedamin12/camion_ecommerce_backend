@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
-import { CartServiceController } from './cart-service.controller';
-import { CartServiceService } from './cart-service.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { CartItem } from './entities/cart.entity';
-import { AuthModule } from '@app/auth';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { AuthModule } from "@app/auth";
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ClientsModule , Transport } from "@nestjs/microservices";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { CartItem } from "./entities/cart.entity";
+import { CartServiceController } from "./cart-service.controller";
+import { CartServiceService } from "./cart-service.service";
 
 @Module({
   imports: [
@@ -22,8 +22,19 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     }),
     TypeOrmModule.forFeature([CartItem]), 
     AuthModule,
-    
+
     ClientsModule.registerAsync([
+      {
+        name: 'USERS_SERVICE',
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.get('USERS_HOST'),
+            port: Number(config.get('USERS_TCP_PORT')),
+          },
+        }),
+        inject: [ConfigService],
+      },
       {
         name: 'AFFILIATE_SERVICE',
         useFactory: (config: ConfigService) => ({
@@ -34,7 +45,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           },
         }),
         inject: [ConfigService],
-        imports: [ConfigModule],
       },
     ]),
   ],

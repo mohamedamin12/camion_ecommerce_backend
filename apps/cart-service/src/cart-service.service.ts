@@ -1,157 +1,250 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Injectable,
-  NotFoundException,
   Inject,
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+  InternalServerErrorException,
+  Logger,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { firstValueFrom, timeout, catchError } from 'rxjs';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { RemoveFromCartDto } from './dto/remove-from-cart.dto';
 import { CartItem } from './entities/cart.entity';
-import { GetUserCartDto } from './dto/get-user-cart.dto';
 
 @Injectable()
 export class CartServiceService {
+  private readonly logger = new Logger(CartServiceService.name);
+
   constructor(
     @InjectRepository(CartItem)
     private readonly cartRepository: Repository<CartItem>,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
     @Inject('AFFILIATE_SERVICE')
     private readonly affiliateClient: ClientProxy,
-  ) { }
+  ) {}
 
-  private async fetchCoupon(code: string) {
-    return firstValueFrom(
-      this.affiliateClient.send(
-        { cmd: 'affiliate.getCouponByCode' },
-        { code },
+  private async verifyUserExists(userId: string) {
+    if (!userId) throw new UnauthorizedException('Missing User ID');
+    const user = await firstValueFrom(
+      this.usersClient.send({ cmd: 'users.getUserById' }, { id: userId }).pipe(
+        timeout(3000),
+        catchError(() => {
+          throw new UnauthorizedException('User does not exist (timeout)');
+        }),
       ),
     );
+    if (!user) throw new UnauthorizedException('User does not exist');
   }
 
-  async addToCart(dto: AddToCartDto) {
+  // - - - - - - - - - - -
+  // هنا التصحيح المحوري في fetchCoupon
+  // - - - - - - - - - - -
+  private async fetchCoupon(code: string) {
     try {
+      return await firstValueFrom(
+        this.affiliateClient
+          .send({ cmd: 'affiliate.getCouponByCode' }, { code: code.trim().toUpperCase() })
+          .pipe(
+            timeout(3000),
+            catchError((err) => {
+              // اطبع كل شيء للديباجينج
+              console.error('[CartService] fetchCoupon error:', JSON.stringify(err), err);
+
+              // 1- لو error جاي كـ RpcException (statusCode + message)
+              //    غالبًا affiliate-service لازم يكون بيرمي RpcException
+              //    مثال: throw new RpcException({ statusCode: 404, message: 'Coupon not found' });
+
+              const statusCode =
+                err?.statusCode ||
+                err?.status ||
+                err?.error?.statusCode ||
+                err?.error?.status;
+
+              const message =
+                err?.message ||
+                err?.error?.message ||
+                err?.error?.response?.message ||
+                err?.response?.message ||
+                err?.response;
+
+              // اختبر كل الكودات المشهورة
+              if (typeof statusCode === 'number' && message) {
+                if (statusCode === 404) throw new NotFoundException(message);
+                if (statusCode === 409) throw new ConflictException(message);
+                if (statusCode === 400) throw new BadRequestException(message);
+                if (statusCode === 401) throw new UnauthorizedException(message);
+                // ولو فيه كود غريب عادة ارميه BadRequest أساسي
+                throw new BadRequestException(message);
+              }
+
+              // في حالات بعض النسخ أو أخطاء serialization:
+              if (err instanceof RpcException) {
+                throw new InternalServerErrorException(
+                  'Microservice RPC exception: ' + (err.message || '')
+                );
+              }
+
+              // لو error instance Exception رسمي (نادر يجي كده في ريسيفر)
+              if (
+                err instanceof NotFoundException ||
+                err instanceof ConflictException ||
+                err instanceof BadRequestException ||
+                err instanceof UnauthorizedException
+              )
+                throw err;
+
+              // أي شكل غريب: خطأ داخلي حقيقي (crash, serialization, disconnect ...)
+              throw new InternalServerErrorException(
+                'Affiliate service error: ' + (message || JSON.stringify(err) || '')
+              );
+            }),
+          ),
+      );
+    } catch (err) {
+      // نفس المنطق في catch الخارجي
+      if (
+        err instanceof NotFoundException ||
+        err instanceof ConflictException ||
+        err instanceof BadRequestException ||
+        err instanceof UnauthorizedException
+      )
+        throw err;
+      console.error('[CartService] fetchCoupon outer error:', err);
+      throw new InternalServerErrorException('Failed to fetch coupon');
+    }
+  }
+
+  async addToCart(dto: AddToCartDto, userId: string) {
+    try {
+      console.log('[CartService] addToCart called', dto, userId);
+      await this.verifyUserExists(userId);
+
+      if (!dto.productId) throw new BadRequestException('Missing productId');
+      if (!dto.quantity || dto.quantity <= 0) throw new BadRequestException('Quantity must be greater than 0');
+
+      const priceNum = Number(dto.price);
+      if (isNaN(priceNum) || priceNum <= 0) throw new BadRequestException('Invalid price');
+      dto.price = String(priceNum);
+
       const existing = await this.cartRepository.findOne({
-        where: { userId: dto.userId, productId: dto.productId },
+        where: { userId: userId, productId: dto.productId },
       });
 
       if (existing) {
         existing.quantity += dto.quantity;
-        return this.cartRepository.save(existing);
+        existing.price = dto.price;
+        const saved = await this.cartRepository.save(existing);
+        const totalPrice = Number(saved.price) * saved.quantity;
+        return { ...saved, totalPrice };
       }
 
-      const cartItem = this.cartRepository.create(dto);
-      return this.cartRepository.save(cartItem);
+      const created = await this.cartRepository.save({ ...dto, userId });
+      const totalPrice = Number(created.price) * created.quantity;
+      return { ...created, totalPrice };
     } catch (error) {
-      throw new Error(error && typeof error === 'object' && 'message' in error ? error.message : 'Failed to add to cart');
+      console.error('[CartService] ERROR:', error, error?.stack);
+      if (
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException ||
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      )
+        throw error;
+      this.logger.error('Failed to add to cart', error.stack);
+      throw new InternalServerErrorException('Failed to add to cart');
     }
   }
 
   async isProductInCart(userId: string, productId: string) {
-    const cartItem = await this.cartRepository.findOne({
-      where: { userId, productId },
+    await this.verifyUserExists(userId);
+    if (!productId) throw new BadRequestException('Missing productId');
+    const item = await this.cartRepository.findOne({ where: { userId, productId } });
+    return { exists: !!item };
+  }
+
+  async updateQuantity(dto: UpdateCartItemDto, userId: string) {
+    await this.verifyUserExists(userId);
+    if (!dto.productId) throw new BadRequestException('Missing productId');
+    if (!dto.quantity || dto.quantity <= 0) throw new BadRequestException('Quantity must be greater than 0');
+
+    const item = await this.cartRepository.findOne({
+      where: { userId, productId: dto.productId },
     });
-    return !!cartItem;
+    if (!item) throw new NotFoundException('Cart item not found');
+
+    item.quantity = dto.quantity;
+    const saved = await this.cartRepository.save(item);
+    const totalPrice = Number(saved.price) * saved.quantity;
+
+    return { ...saved, totalPrice };
   }
 
-  async updateQuantity(dto: UpdateCartItemDto) {
-    try {
-      const cartItem = await this.cartRepository.findOne({
-        where: { userId: dto.userId, productId: dto.productId },
-      });
-
-      if (!cartItem) {
-        throw new NotFoundException('Cart item not found');
-      }
-
-      cartItem.quantity = dto.quantity;
-      return this.cartRepository.save(cartItem);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      return new Error(error && typeof error === 'object' && 'message' in error ? error.message : 'Failed to update cart item quantity');
-    }
+  async getCart(userId: string) {
+    await this.verifyUserExists(userId);
+    const items = await this.cartRepository.find({ where: { userId } });
+    return items.map(item => ({
+      ...item,
+      totalPrice: Number(item.price) * item.quantity,
+    }));
   }
 
-  async getCart(dto: GetUserCartDto) {
-    try {
-      return this.cartRepository.find({ where: { userId: dto.userId } });
-    } catch (error) {
-      return new Error(error && typeof error === 'object' && 'message' in error ? error.message : 'Failed to get cart');
-    }
+  async removeFromCart(dto: RemoveFromCartDto, userId: string) {
+    await this.verifyUserExists(userId);
+    if (!dto.productId) throw new BadRequestException('Missing productId');
+
+    const item = await this.cartRepository.findOne({
+      where: { userId, productId: dto.productId },
+    });
+    if (!item) throw new NotFoundException('Cart item not found');
+    return this.cartRepository.remove(item);
+  }
+
+  async clearCart(userId: string) {
+    await this.verifyUserExists(userId);
+    const items = await this.cartRepository.find({ where: { userId } });
+    if (!items.length) throw new NotFoundException('Cart is already empty');
+    await this.cartRepository.remove(items);
+    return { message: 'Cart cleared successfully' };
   }
 
   async applyCouponToCart(userId: string, couponCode: string) {
-    const cartItems = await this.cartRepository.find({ where: { userId } });
-    if (!cartItems.length) throw new NotFoundException('Cart is empty');
+    try {
+      await this.verifyUserExists(userId);
+      const cartItems = await this.cartRepository.find({ where: { userId } });
+      if (!cartItems.length) throw new NotFoundException('Cart is empty');
 
-    const coupon = await this.fetchCoupon(couponCode);
-    if (!coupon) throw new NotFoundException('Invalid coupon code');
+      const coupon = await this.fetchCoupon(couponCode);
 
-    const total = cartItems.reduce((sum, i) => sum + (i.price ?? 0) * i.quantity, 0);
-    const discount = (total * coupon.discountPercentage) / 100;
-    const afterDisc = total - discount;
+      if (!coupon) throw new NotFoundException('Invalid coupon code');
 
-    return { cartItems, total, discount, totalAfterDiscount: afterDisc, coupon };
-  }
+      const total = cartItems.reduce((sum, i) => {
+        const priceNum = i.price ? parseFloat(i.price) : 0;
+        return sum + priceNum * i.quantity;
+      }, 0);
 
-  async getCouponByCode(code: string): Promise < { code: string; discountPercentage: number } | null > {
-  try {
-    const coupon = await firstValueFrom(
-      this.affiliateClient.send(
-        { cmd: 'affiliate.getCouponByCode' },
-        { code }
-      )
-    );
+      const discount = (total * coupon.discountPercentage) / 100;
+      const totalAfterDiscount = total - discount;
 
-    if(!coupon) return null;
-
-    return {
-      code: coupon.code,
-      discountPercentage: coupon.discountPercentage
-    };
-  } catch(error) {
-    console.log('Error getting coupon:', error);
-    return null;
-  }
-}
-
-  async removeFromCart(dto: RemoveFromCartDto) {
-  try {
-    const cartItem = await this.cartRepository.findOne({
-      where: { userId: dto.userId, productId: dto.productId },
-    });
-
-    if (!cartItem) {
-      throw new NotFoundException('Cart item not found');
+      return { cartItems, total, discount, totalAfterDiscount, coupon };
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException ||
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) throw error;
+      this.logger.error('Failed to apply coupon', error.stack);
+      throw new InternalServerErrorException('Failed to apply coupon');
     }
-
-    return this.cartRepository.remove(cartItem);
-  } catch (error) {
-    if (error instanceof NotFoundException) {
-      throw error;
-    }
-    return new Error(error && typeof error === 'object' && 'message' in error ? error.message : 'Failed to remove from cart');
   }
-}
-
-  async clearCart(userId: string) {
-  try {
-    const cartItems = await this.cartRepository.find({ where: { userId } });
-    if (!cartItems.length) throw new NotFoundException('Cart is already empty');
-
-    await this.cartRepository.remove(cartItems);
-    return { message: 'Cart cleared successfully' };
-  } catch (error) {
-    if (error instanceof NotFoundException) throw error;
-    return new Error(error && typeof error === 'object' && 'message' in error ? error.message : 'Failed to clear cart');
-  }
-}
 }
