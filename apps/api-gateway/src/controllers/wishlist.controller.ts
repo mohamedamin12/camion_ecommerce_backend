@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Inject, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { UserRole } from 'apps/users-service/src/entities/user.entity';
 import { AddToWishlistDto } from 'apps/wishlist-service/src/dto/add-to-wishlist.dto';
@@ -50,7 +50,7 @@ export class WishlistController {
 
  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.AFFILIATE)
-  @Post('get')
+  @Get('get')
   getWishlist(@CurrentUserId() userId: string) {
     return this.wishlistClient.send({ cmd: 'get_wishlist' }, { userId });
   }

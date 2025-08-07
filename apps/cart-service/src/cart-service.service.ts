@@ -46,9 +46,6 @@ export class CartServiceService {
     if (!user) throw new UnauthorizedException('User does not exist');
   }
 
-  // - - - - - - - - - - -
-  // هنا التصحيح المحوري في fetchCoupon
-  // - - - - - - - - - - -
   private async fetchCoupon(code: string) {
     try {
       return await firstValueFrom(
@@ -57,12 +54,7 @@ export class CartServiceService {
           .pipe(
             timeout(3000),
             catchError((err) => {
-              // اطبع كل شيء للديباجينج
               console.error('[CartService] fetchCoupon error:', JSON.stringify(err), err);
-
-              // 1- لو error جاي كـ RpcException (statusCode + message)
-              //    غالبًا affiliate-service لازم يكون بيرمي RpcException
-              //    مثال: throw new RpcException({ statusCode: 404, message: 'Coupon not found' });
 
               const statusCode =
                 err?.statusCode ||
@@ -77,24 +69,20 @@ export class CartServiceService {
                 err?.response?.message ||
                 err?.response;
 
-              // اختبر كل الكودات المشهورة
               if (typeof statusCode === 'number' && message) {
                 if (statusCode === 404) throw new NotFoundException(message);
                 if (statusCode === 409) throw new ConflictException(message);
                 if (statusCode === 400) throw new BadRequestException(message);
                 if (statusCode === 401) throw new UnauthorizedException(message);
-                // ولو فيه كود غريب عادة ارميه BadRequest أساسي
                 throw new BadRequestException(message);
               }
 
-              // في حالات بعض النسخ أو أخطاء serialization:
               if (err instanceof RpcException) {
                 throw new InternalServerErrorException(
                   'Microservice RPC exception: ' + (err.message || '')
                 );
               }
 
-              // لو error instance Exception رسمي (نادر يجي كده في ريسيفر)
               if (
                 err instanceof NotFoundException ||
                 err instanceof ConflictException ||
@@ -103,7 +91,6 @@ export class CartServiceService {
               )
                 throw err;
 
-              // أي شكل غريب: خطأ داخلي حقيقي (crash, serialization, disconnect ...)
               throw new InternalServerErrorException(
                 'Affiliate service error: ' + (message || JSON.stringify(err) || '')
               );
@@ -111,7 +98,6 @@ export class CartServiceService {
           ),
       );
     } catch (err) {
-      // نفس المنطق في catch الخارجي
       if (
         err instanceof NotFoundException ||
         err instanceof ConflictException ||

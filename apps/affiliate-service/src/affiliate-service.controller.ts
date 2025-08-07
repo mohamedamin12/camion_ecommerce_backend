@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
-  Controller,
-  UsePipes,
-  ValidationPipe,
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-  UnauthorizedException,
+  Controller, UsePipes, ValidationPipe, NotFoundException,
+  ConflictException, BadRequestException, UnauthorizedException,
 } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { AffiliateServiceService } from './affiliate-service.service';
@@ -45,7 +40,7 @@ function mapException(error: any) {
 }))
 @Controller()
 export class AffiliateServiceController {
-  constructor(private readonly affiliateService: AffiliateServiceService) { }
+  constructor(private readonly affiliateService: AffiliateServiceService) {}
 
   @MessagePattern({ cmd: 'create_affiliate_request' })
   async handleAffiliateRequest(@Payload() dto: CreateAffiliateRequestDto) {
@@ -65,15 +60,6 @@ export class AffiliateServiceController {
     }
   }
 
-  @MessagePattern({ cmd: 'affiliate.getCouponByCode' })
-  async getCouponByCode(@Payload() { code }: { code: string }) {
-    try {
-      return await this.affiliateService.getCouponByCode(code);
-    } catch (error) {
-      throw mapException(error);
-    }
-  }
-
   @MessagePattern({ cmd: 'review_affiliate_request' })
   async handleReviewRequest(@Payload() dto: ReviewAffiliateRequestDto) {
     try {
@@ -84,13 +70,24 @@ export class AffiliateServiceController {
   }
 
   @MessagePattern({ cmd: 'create_coupon' })
-  async handleCreateCoupon(@Payload() dto: CreateCouponDto) {
+  async handleCreateCoupon(@Payload() data: { affiliateId: string } & CreateCouponDto) {
     try {
-      return await this.affiliateService.createCoupon(dto);
+      const { affiliateId, ...dto } = data;
+      return await this.affiliateService.createCoupon(affiliateId, dto);
     } catch (error) {
       throw mapException(error);
     }
   }
+
+  @MessagePattern({ cmd: 'get_coupons_by_affiliate' })
+  async handleGetCouponsByAffiliate(@Payload() data: { affiliateId: string }) {
+    try {
+      return await this.affiliateService.getCouponsByAffiliate(data.affiliateId);
+    } catch (error) {
+      throw mapException(error);
+    }
+  }
+
 
   @MessagePattern({ cmd: 'search_coupons' })
   async searchCoupons(@Payload() dto: SearchCouponsDto) {
@@ -123,15 +120,6 @@ export class AffiliateServiceController {
   async handleDeleteAffiliate(@Payload() id: string) {
     try {
       return await this.affiliateService.deleteAffiliate(id);
-    } catch (error) {
-      throw mapException(error);
-    }
-  }
-
-  @MessagePattern({ cmd: 'get_coupons_by_affiliate' })
-  async handleGetCouponsByAffiliate(@Payload() affiliateId: string) {
-    try {
-      return await this.affiliateService.getCouponsByAffiliate(affiliateId);
     } catch (error) {
       throw mapException(error);
     }

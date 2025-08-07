@@ -1,4 +1,6 @@
-import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { 
+  Body, Controller, Delete, Get, Inject, Param, Patch, Post, UseGuards 
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateAffiliateRequestDto } from 'apps/affiliate-service/src/dto/create-affiliate-request.dto';
 import { CreateCouponDto } from 'apps/affiliate-service/src/dto/create-coupon.dto';
@@ -8,45 +10,50 @@ import { UserRole } from 'apps/users-service/src/entities/user.entity';
 import { JwtAuthGuard } from 'libs/auth/src';
 import { Roles } from 'libs/auth/src/roles.decorator';
 import { RolesGuard } from 'libs/auth/src/roles.guard';
+import { CurrentAffiliateId } from 'libs/auth/src/current-affiliate-id.decorator';
 
 @Controller('affiliates')
 export class AffiliateController {
   constructor(
     @Inject('AFFILIATE_SERVICE') private readonly affiliateClient: ClientProxy,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER)
   @Post('request')
-   requestAffiliate(@Body() dto: CreateAffiliateRequestDto) {
+  requestAffiliate(@Body() dto: CreateAffiliateRequestDto) {
     return this.affiliateClient.send({ cmd: 'create_affiliate_request' }, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('requests/pending')
-   getPendingRequests() {
+  getPendingRequests() {
     return this.affiliateClient.send({ cmd: 'get_pending_affiliate_requests' }, {});
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post('requests/review')
-   reviewRequest(@Body() dto: ReviewAffiliateRequestDto) {
+  reviewRequest(@Body() dto: ReviewAffiliateRequestDto) {
     return this.affiliateClient.send({ cmd: 'review_affiliate_request' }, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.AFFILIATE)
   @Post('coupon')
-   createCoupon(@Body() dto: CreateCouponDto) {
-    return this.affiliateClient.send({ cmd: 'create_coupon' }, dto);
+  createCoupon(
+    @Body() dto: CreateCouponDto,
+    @CurrentAffiliateId() affiliateId: string,
+  ) {
+    return this.affiliateClient.send({ cmd: 'create_coupon' }, { ...dto, affiliateId });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Get('coupon/:affiliateId')
-   getCoupons(@Param('affiliateId') affiliateId: string) {
-    return this.affiliateClient.send({ cmd: 'get_coupons_by_affiliate' }, affiliateId);
+  @Roles(UserRole.ADMIN, UserRole.AFFILIATE)
+  @Get('coupon/me')
+  getCoupons(@CurrentAffiliateId() affiliateId: string) {
+    return this.affiliateClient.send({ cmd: 'get_coupons_by_affiliate' }, { affiliateId });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -59,28 +66,28 @@ export class AffiliateController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete('coupon/:id')
-   deleteCoupon(@Param('id') couponId: string) {
+  deleteCoupon(@Param('id') couponId: string) {
     return this.affiliateClient.send({ cmd: 'delete_coupon' }, couponId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.AFFILIATE)
   @Patch(':id')
-   updateAffiliate(@Param('id') id: string, @Body() dto: any) {
+  updateAffiliate(@Param('id') id: string, @Body() dto: any) {
     return this.affiliateClient.send({ cmd: 'update_affiliate' }, { id, ...dto });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.AFFILIATE)
   @Delete(':id')
-   deleteAffiliate(@Param('id') id: string) {
+  deleteAffiliate(@Param('id') id: string) {
     return this.affiliateClient.send({ cmd: 'delete_affiliate' }, id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('coupons/all')
-   getAllCoupons() {
+  getAllCoupons() {
     return this.affiliateClient.send({ cmd: 'get_all_coupons' }, {});
   }
 }

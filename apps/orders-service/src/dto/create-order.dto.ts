@@ -2,10 +2,6 @@ import { IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 
 export class CreateOrderDto {
   @IsNotEmpty()
-  @IsString()
-  userId: string;
-
-  @IsNotEmpty()
   @IsArray()
   cartItems: Array<{
     productId: string;

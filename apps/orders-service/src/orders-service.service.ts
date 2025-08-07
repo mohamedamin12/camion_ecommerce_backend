@@ -15,10 +15,11 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
   ) {}
 
-  async createOrder(dto: CreateOrderDto) {
+ async createOrder(userId: string, dto: CreateOrderDto) {
     try {
       const order = this.orderRepository.create({
         ...dto,
+        userId,
         paymentMethodType: 'card',
       });
       return await this.orderRepository.save(order);
@@ -83,7 +84,6 @@ export class OrdersService {
   }
 }
 
-// Helper for converting exceptions
 function toRpc(error: any, fallbackMsg?: string) {
   if (error instanceof RpcException) return error;
   const statusCode = error?.getStatus?.() || 500;

@@ -47,9 +47,10 @@ export class OrdersController {
   constructor(private readonly orderService: OrdersService) {}
 
   @MessagePattern({ cmd: 'create_order' })
-  async createOrder(@Payload() dto: CreateOrderDto) {
+  async createOrder(@Payload() data: { userId: string } & CreateOrderDto) {
     try {
-      return await this.orderService.createOrder(dto);
+      const { userId, ...dto } = data;
+      return await this.orderService.createOrder(userId, dto);
     } catch (error) {
       throw mapException(error);
     }

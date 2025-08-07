@@ -21,7 +21,7 @@ export class AffiliateServiceService {
     private readonly affiliateRepository: Repository<Affiliate>,
     @InjectRepository(Coupon)
     private readonly couponRepository: Repository<Coupon>,
-  ) {}
+  ) { }
 
   private async generateInitialCoupons(affiliate: Affiliate) {
     const coupons: Coupon[] = [];
@@ -101,10 +101,10 @@ export class AffiliateServiceService {
     }
   }
 
-  async createCoupon(dto: CreateCouponDto) {
+  async createCoupon(affiliateId: string, dto: CreateCouponDto) {
     try {
       const affiliate = await this.affiliateRepository.findOne({
-        where: { id: dto.affiliateId, status: AffiliateStatus.APPROVED },
+        where: { id: affiliateId, status: AffiliateStatus.APPROVED },
       });
       if (!affiliate) {
         throw new RpcException({ statusCode: 404, message: 'Affiliate not found or not approved' });
