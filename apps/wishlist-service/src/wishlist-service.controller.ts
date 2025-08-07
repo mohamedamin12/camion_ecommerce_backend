@@ -48,7 +48,6 @@ export class WishlistServiceController {
   constructor(private readonly wishlistService: WishlistServiceService) { }
 
   @MessagePattern({ cmd: 'add_to_wishlist' })
-  @MessagePattern({ cmd: 'add_to_wishlist' })
   async addToWishlist(@Payload() data: { userId: string } & AddToWishlistDto) {
     try {
       const { userId, ...dto } = data;
