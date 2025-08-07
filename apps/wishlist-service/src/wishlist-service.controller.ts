@@ -13,7 +13,6 @@ import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { WishlistServiceService } from './wishlist-service.service';
 import { AddToWishlistDto } from './dto/add-to-wishlist.dto';
 import { RemoveFromWishlistDto } from './dto/remove-from-wishlist.dto';
-import { GetUserWishlistDto } from './dto/get-user-wishlist.dto';
 
 function mapException(error: any) {
   if (error instanceof RpcException) return error;
@@ -46,12 +45,14 @@ function mapException(error: any) {
 )
 @Controller()
 export class WishlistServiceController {
-  constructor(private readonly wishlistService: WishlistServiceService) {}
+  constructor(private readonly wishlistService: WishlistServiceService) { }
 
   @MessagePattern({ cmd: 'add_to_wishlist' })
-  async addToWishlist(@Payload() dto: AddToWishlistDto) {
+  @MessagePattern({ cmd: 'add_to_wishlist' })
+  async addToWishlist(@Payload() data: { userId: string } & AddToWishlistDto) {
     try {
-      return await this.wishlistService.addToWishlist(dto);
+      const { userId, ...dto } = data;
+      return await this.wishlistService.addToWishlist(userId , dto);
     } catch (error) {
       throw mapException(error);
     }
@@ -69,18 +70,19 @@ export class WishlistServiceController {
   }
 
   @MessagePattern({ cmd: 'remove_from_wishlist' })
-  async removeFromWishlist(@Payload() dto: RemoveFromWishlistDto) {
+  async removeFromWishlist(@Payload() data: { userId: string } & RemoveFromWishlistDto) {
     try {
-      return await this.wishlistService.removeFromWishlist(dto);
+      const { userId, ...dto } = data;
+      return await this.wishlistService.removeFromWishlist(userId , dto);
     } catch (error) {
       throw mapException(error);
     }
   }
 
   @MessagePattern({ cmd: 'get_wishlist' })
-  async getWishlist(@Payload() dto: GetUserWishlistDto) {
+  async getWishlist(@Payload() data: { userId: string }) {
     try {
-      return await this.wishlistService.getWishlist(dto);
+      return await this.wishlistService.getWishlist(data.userId);
     } catch (error) {
       throw mapException(error);
     }

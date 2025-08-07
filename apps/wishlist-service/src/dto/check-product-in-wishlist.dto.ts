@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString } from "class-validator";
 
-export class CheckProductInWishlistDto  {
-    @IsString()
-    @IsNotEmpty()
+export class CheckProductInWishlistDto {
+  @IsString()
+  @IsNotEmpty()
   productId: string;
 }

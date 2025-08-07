@@ -22,7 +22,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     private jwtService: JwtService,
     private otpService: OTPService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDto): Promise<User> {
     try {
@@ -43,56 +43,65 @@ export class UsersService {
   }
 
   async login(dto: LoginDto) {
-  try {
-    if (!dto.email || !dto.phone) {
-      throw new RpcException({ statusCode: 400, message: 'Email and phone are required' });
-    }
-    console.log('Login input:', dto.email, dto.phone);
+    try {
+      if (!dto.email || !dto.phone) {
+        throw new RpcException({ statusCode: 400, message: 'Email and phone are required' });
+      }
+      console.log('Login input:', dto.email, dto.phone);
 
-    const user = await this.userRepository.findOne({
-      where: { email: dto.email, phone: dto.phone },
-    });
-    console.log('User found:', user);
+      const user = await this.userRepository.findOne({
+        where: { email: dto.email, phone: dto.phone },
+      });
+      console.log('User found:', user);
 
-    if (!user) {
-      throw new RpcException({ statusCode: 401, message: 'Invalid credentials' });
-    }
+      if (!user) {
+        throw new RpcException({ statusCode: 401, message: 'Invalid credentials' });
+      }
 
-    let OTP = '';
-    for (let i = 0; i < 6; i++) {
-      OTP += Math.floor(Math.random() * 10);
+      let OTP = '';
+      for (let i = 0; i < 6; i++) {
+        OTP += Math.floor(Math.random() * 10);
+      }
+      user.code = OTP;
+
+      console.log('Generated OTP:', OTP);
+      await this.userRepository.save(user);
+
+      return { success: true, msg: `Check Code on ${user.phone}!`, otp: OTP };
+
+
+      // await this.otpService.sendSms(user.phone, `Camion Verification code ${OTP}`);
+      // console.log('SMS sent to:', user.phone);
+
+      // return { success: true, msg: `Check Code on ${user.phone}!` };
+    } catch (error) {
+      console.error('Login error at login');
+      throw toRpc(error, 'Login failed');
     }
-    user.code = OTP;
-    await this.userRepository.save(user);
-    await this.otpService.sendSms(user.phone, `Camion Verification code ${OTP}`);
-    return { success: true, msg: `Check Code on ${user.phone}!` };
-  } catch (error) {
-    throw toRpc(error, 'Login failed');
   }
-}
 
-async verifyOTP(dto: VerifyDto) {
-  try {
-    if (!dto.email || !dto.phone) {
-      throw new RpcException({ statusCode: 400, message: 'Email and phone are required' });
+  async verifyOTP(dto: VerifyDto) {
+    try {
+      if (!dto.email || !dto.phone) {
+        throw new RpcException({ statusCode: 400, message: 'Email and phone are required' });
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { email: dto.email, phone: dto.phone },
+      });
+
+      if (!user) throw new RpcException({ statusCode: 401, message: 'Invalid credentials' });
+      if (user.code !== dto.code) throw new RpcException({ statusCode: 401, message: 'Invalid OTP code' });
+
+      user.code = '';
+      await this.userRepository.save(user);
+      const payload = { sub: user.id, email: user.email, phone: user.phone, role: user.role };
+      const token = this.jwtService.sign(payload);
+      return { accessToken: token, user };
+    } catch (error) {
+      throw toRpc(error, 'OTP verification failed');
     }
-
-    const user = await this.userRepository.findOne({
-      where: { email: dto.email, phone: dto.phone },
-    });
-
-    if (!user) throw new RpcException({ statusCode: 401, message: 'Invalid credentials' });
-    if (user.code !== dto.code) throw new RpcException({ statusCode: 401, message: 'Invalid OTP code' });
-
-    user.code = '';
-    await this.userRepository.save(user);
-    const payload = { sub: user.id, email: user.email, phone: user.phone, role: user.role };
-    const token = this.jwtService.sign(payload);
-    return { accessToken: token, user };
-  } catch (error) {
-    throw toRpc(error, 'OTP verification failed');
   }
-}
 
   async createUser(dto: CreateUserDto): Promise<User> {
     try {

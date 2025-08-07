@@ -3,7 +3,6 @@ import { ClientProxy } from '@nestjs/microservices';
 import { UserRole } from 'apps/users-service/src/entities/user.entity';
 import { AddToWishlistDto } from 'apps/wishlist-service/src/dto/add-to-wishlist.dto';
 import { CheckProductInWishlistDto } from 'apps/wishlist-service/src/dto/check-product-in-wishlist.dto';
-import { GetUserWishlistDto } from 'apps/wishlist-service/src/dto/get-user-wishlist.dto';
 import { RemoveFromWishlistDto } from 'apps/wishlist-service/src/dto/remove-from-wishlist.dto';
 import { JwtAuthGuard } from 'libs/auth/src';
 import { CurrentUserId } from 'libs/auth/src/current-user.decorator';
@@ -19,8 +18,11 @@ export class WishlistController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.AFFILIATE)
   @Post('add')
-  addToWishlist(@Body() body: AddToWishlistDto) {
-    return this.wishlistClient.send({ cmd: 'add_to_wishlist' }, body);
+  addToWishlist(
+    @Body() body: AddToWishlistDto,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.wishlistClient.send({ cmd: 'add_to_wishlist' }, { ...body, userId });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -39,14 +41,17 @@ export class WishlistController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.AFFILIATE)
   @Delete('remove')
-  removeFromWishlist(@Body() body: RemoveFromWishlistDto) {
-    return this.wishlistClient.send({ cmd: 'remove_from_wishlist' }, body);
+  removeFromWishlist(
+    @Body() body: RemoveFromWishlistDto,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.wishlistClient.send({ cmd: 'remove_from_wishlist' }, { ...body, userId });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+ @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.AFFILIATE)
   @Post('get')
-  getWishlist(@Body() body: GetUserWishlistDto) {
-    return this.wishlistClient.send({ cmd: 'get_wishlist' }, body);
+  getWishlist(@CurrentUserId() userId: string) {
+    return this.wishlistClient.send({ cmd: 'get_wishlist' }, { userId });
   }
 }
