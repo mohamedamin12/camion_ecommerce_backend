@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios'; // Add this import
 import { Order } from './entities/order.entity';
 import { AuthModule } from '@app/auth';
 import { OrdersController } from './orders-service.controller';
 import { OrdersService } from './orders-service.service';
+import { WooCommerceClientService } from './woocommerce/woocommerce-client.service';
 
 @Module({
   imports: [
@@ -20,9 +22,10 @@ import { OrdersService } from './orders-service.service';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Order]),
+    HttpModule, // Add this for HTTP requests
     AuthModule
   ],
   controllers: [OrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService, WooCommerceClientService],
 })
 export class OrdersServiceModule {}
