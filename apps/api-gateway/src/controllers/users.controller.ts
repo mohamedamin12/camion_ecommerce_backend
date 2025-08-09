@@ -12,6 +12,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateUserDto } from 'apps/users-service/src/dto/create-user.dto';
 import { FilterUsersDto } from 'apps/users-service/src/dto/filter-users.dto';
+import { LoginAdminDto } from 'apps/users-service/src/dto/login-admin.dto';
 import { LoginDto } from 'apps/users-service/src/dto/login.dto';
 import { RegisterDto } from 'apps/users-service/src/dto/register.dto';
 import { UpdateUserDto } from 'apps/users-service/src/dto/update-user.dto';
@@ -33,7 +34,7 @@ export class UserController {
   }
 
   @Post('auth/login_admin')
-  loginAdmin(@Body() body: LoginDto) {
+  loginAdmin(@Body() body: LoginAdminDto) {
     return this.usersClient.send({ cmd: 'login_admin' }, body);
   }
 

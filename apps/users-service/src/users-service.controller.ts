@@ -17,6 +17,7 @@ import { RegisterDto } from './dto/register.dto';
 import { VerifyDto } from './dto/verifyOTP.dto';
 import { FilterUsersDto } from './dto/filter-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { LoginAdminDto } from './dto/login-admin.dto';
 
 function mapException(error: any) {
   if (error instanceof RpcException) return error;
@@ -68,9 +69,9 @@ export class UsersServiceController {
       throw mapException(error);
     }
   }
-  
+
   @MessagePattern({ cmd: 'login_admin' })
-  async loginAdmin(@Payload() dto: LoginDto) {
+  async loginAdmin(@Payload() dto: LoginAdminDto) {
     try {
       return await this.usersService.loginAdmin(dto);
     } catch (error) {

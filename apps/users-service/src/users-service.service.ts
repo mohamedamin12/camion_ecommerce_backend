@@ -22,6 +22,7 @@ import { VerifyDto } from './dto/verifyOTP.dto';
 import { FilterUsersDto } from './dto/filter-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { LoginAdminDto } from './dto/login-admin.dto';
 
 @Injectable()
 export class UsersService {
@@ -56,7 +57,7 @@ export class UsersService {
     }
   }
 
-  async loginAdmin(dto: LoginDto) {
+  async loginAdmin(dto: LoginAdminDto) {
     try {
       if (!dto.email || !dto.password) {
         throw new RpcException({
