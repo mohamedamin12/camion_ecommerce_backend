@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateUserDto } from 'apps/users-service/src/dto/create-user.dto';
 import { FilterUsersDto } from 'apps/users-service/src/dto/filter-users.dto';
@@ -15,11 +25,16 @@ import { RolesGuard } from 'libs/auth/src/roles.guard';
 export class UserController {
   constructor(
     @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,
-  ) { }
+  ) {}
 
   @Post('auth/register')
   register(@Body() body: RegisterDto) {
     return this.usersClient.send({ cmd: 'register_user' }, body);
+  }
+
+  @Post('auth/login_admin')
+  loginAdmin(@Body() body: LoginDto) {
+    return this.usersClient.send({ cmd: 'login_admin' }, body);
   }
 
   @Post('auth/login')
@@ -33,41 +48,41 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN )
+  @Roles(UserRole.ADMIN)
   @Post()
   createUser(@Body() body: CreateUserDto) {
     return this.usersClient.send({ cmd: 'create_user' }, body);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN )
+  @Roles(UserRole.ADMIN)
   @Get()
-   getAllUsers() {
+  getAllUsers() {
     return this.usersClient.send({ cmd: 'get_users' }, {});
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-   getUserById(@Param('id') id: string) {
+  getUserById(@Param('id') id: string) {
     return this.usersClient.send({ cmd: 'get_user_by_id' }, id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN )
+  @Roles(UserRole.ADMIN)
   @Post('find')
-   findUsersByFilters(@Body() body: FilterUsersDto) {
+  findUsersByFilters(@Body() body: FilterUsersDto) {
     return this.usersClient.send({ cmd: 'find_user_by_identifier' }, body);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
-   updateUser(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
+  updateUser(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
     return this.usersClient.send({ cmd: 'update_user' }, { id, updateData });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
-   deleteUser(@Param('id') id: string) {
+  deleteUser(@Param('id') id: string) {
     return this.usersClient.send({ cmd: 'delete_user' }, id);
   }
 }

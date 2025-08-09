@@ -1,9 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column,  CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export enum UserRole {
   USER = 'user',
   ADMIN = 'admin',
-  AFFILIATE = 'affiliate'
+  AFFILIATE = 'affiliate',
 }
 
 @Entity('users')
@@ -18,6 +24,9 @@ export class User {
   phone: string;
 
   @Column()
+  password: string;
+
+  @Column()
   fullName: string;
 
   @Column({ default: true })
@@ -26,7 +35,6 @@ export class User {
   @Column({ nullable: true })
   code: string;
 
-
   @Column({
     type: 'enum',
     enum: UserRole,
@@ -34,7 +42,6 @@ export class User {
   })
   role: UserRole;
 
-  
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

@@ -68,6 +68,15 @@ export class UsersServiceController {
       throw mapException(error);
     }
   }
+  
+  @MessagePattern({ cmd: 'login_admin' })
+  async loginAdmin(@Payload() dto: LoginDto) {
+    try {
+      return await this.usersService.loginAdmin(dto);
+    } catch (error) {
+      throw mapException(error);
+    }
+  }
 
   @MessagePattern({ cmd: 'create_user' })
   async createUser(@Payload() dto: CreateUserDto) {
