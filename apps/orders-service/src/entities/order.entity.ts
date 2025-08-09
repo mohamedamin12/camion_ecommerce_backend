@@ -20,14 +20,14 @@ export class Order {
     title?: string;
     image?: string;
     quantity: number;
-    price: number;
+    price: string;
   }>;
 
-  @Column({ type: 'float', default: 0 })
-  shippingPrice: number;
+  @Column({ type: 'varchar', default: '0' })
+  shippingPrice: string;
 
-  @Column({ type: 'float', default: 0 })
-  totalOrderPrice: number;
+  @Column({ type: 'varchar', default: '0' })
+  totalOrderPrice: string;
 
   @Column({ default: 'card' })
   paymentMethodType: string;

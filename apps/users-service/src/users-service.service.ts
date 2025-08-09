@@ -1,19 +1,29 @@
-import {
-  BadRequestException,
-  Body,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { RpcException } from '@nestjs/microservices';
+import { User, UserRole } from './entities/user.entity';
+import {
+  Repository,
+  Between,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  FindOptionsWhere,
+} from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { OTPService } from './otp-service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtService } from '@nestjs/jwt';
-import { OTPService } from './otp-service';
 import { VerifyDto } from './dto/verifyOTP.dto';
+import { FilterUsersDto } from './dto/filter-users.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { LoginAdminDto } from './dto/login-admin.dto';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -23,118 +33,292 @@ export class UsersService {
     private otpService: OTPService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const existing = await this.userRepository.findOne({
-      where: [{ email: dto.email }, { phone: dto.phone }],
-    });
+  async register(dto: RegisterDto): Promise<User> {
+    try {
+      if (!dto.email || !dto.phone) {
+        throw new RpcException({
+          statusCode: 400,
+          message: 'Email and Phone number are required',
+        });
+      }
+      const existing = await this.userRepository.findOne({
+        where: [{ email: dto.email }, { phone: dto.phone }],
+      });
+      if (existing) {
+        throw new RpcException({
+          statusCode: 409,
+          message: 'User already exists',
+        });
+      }
+      const user = this.userRepository.create(dto);
+      return await this.userRepository.save(user);
+    } catch (error) {
+      throw toRpc(error, 'Registration failed');
+    }
+  }
 
-    if (existing) throw new BadRequestException('User already exists');
+  async loginAdmin(dto: LoginAdminDto) {
+    try {
+      if (!dto.email || !dto.password) {
+        throw new RpcException({
+          statusCode: 400,
+          message: 'Email and password are required',
+        });
+      }
 
-    const user = this.userRepository.create(dto);
-    return this.userRepository.save(user);
+      // Find user by email only
+      const user = await this.userRepository.findOne({
+        where: { email: dto.email },
+      });
+
+      if (!user) {
+        throw new RpcException({
+          statusCode: 401,
+          message: 'Invalid credentials',
+        });
+      }
+
+      // Compare hashed password
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+      if (!isPasswordValid) {
+        throw new RpcException({
+          statusCode: 401,
+          message: 'Invalid credentials',
+        });
+      }
+
+      // Check if admin
+      if (user.role !== UserRole.ADMIN) {
+        throw new RpcException({
+          statusCode: 403,
+          message: 'Access denied. Admins only.',
+        });
+      }
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+      const token = this.jwtService.sign(payload);
+
+      return {
+        success: true,
+        msg: `Admin Login`,
+        accessToken: token,
+        admin: user,
+      };
+    } catch (error) {
+      console.error('Login error at login', error);
+      throw toRpc(error, 'Login failed');
+    }
   }
 
   async login(dto: LoginDto) {
-    if (!dto.email && !dto.phone) {
-      throw new BadRequestException('Email or phone is required');
-    }
+    try {
+      if (!dto.email || !dto.phone) {
+        throw new RpcException({
+          statusCode: 400,
+          message: 'Email and phone are required',
+        });
+      }
+      console.log('Login input:', dto.email, dto.phone);
 
-    let user = await this.userRepository.findOne({
-      where: [
-        ...(dto.email ? [{ email: dto.email }] : []),
-        ...(dto.phone ? [{ phone: dto.phone }] : []),
-      ],
-    });
-    // if (dto.email) {
-    //   user = await this.userRepository.findOne({ where: { email: dto.email } });
-    // } else if (dto.phone) {
-    //   user = await this.userRepository.findOne({ where: { phone: dto.phone } });
-    // }
+      const user = await this.userRepository.findOne({
+        where: { email: dto.email, phone: dto.phone },
+      });
+      console.log('User found:', user);
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      if (!user) {
+        throw new RpcException({
+          statusCode: 401,
+          message: 'Invalid credentials',
+        });
+      }
+
+      let OTP = '';
+      for (let i = 0; i < 6; i++) {
+        OTP += Math.floor(Math.random() * 10);
+      }
+      user.code = OTP;
+
+      console.log('Generated OTP:', OTP);
+      await this.userRepository.save(user);
+
+      await this.otpService.sendSms(
+        user.phone,
+        `Camion Verification code ${OTP}`,
+      );
+      console.log('SMS sent to:', user.phone);
+
+      return { success: true, msg: `Check Code on ${user.phone}!` };
+    } catch (error) {
+      console.error('Login error at login');
+      throw toRpc(error, 'Login failed');
     }
-    let digits = '0123456789';
-    let OTP = '';
-    for (let i = 0; i < 6; i++) {
-      OTP += digits[Math.floor(Math.random() * 10)];
-    }
-    user.code = OTP;
-    await this.userRepository.save(user);
-    const msg = `Camion Verification code ${OTP}`;
-    await this.otpService.sendSms(user.phone, msg);
-    // await this.otpService.sendOTP(user.phone);
-    // check send response
-    return {
-      success: 'true',
-      msg: `Check Code on ${user.phone}!`,
-    };
   }
 
-  async verifyOTP(dto: LoginDto) {
-    if (!dto.email && !dto.phone) {
-      throw new BadRequestException('Email or phone is required');
-    }
+  async verifyOTP(dto: VerifyDto) {
+    try {
+      if (!dto.email || !dto.phone) {
+        throw new RpcException({
+          statusCode: 400,
+          message: 'Email and phone are required',
+        });
+      }
 
-    let user;
-    if (dto.email) {
-      user = await this.userRepository.findOne({ where: { email: dto.email } });
-    } else if (dto.phone) {
-      user = await this.userRepository.findOne({ where: { phone: dto.phone } });
-    }
+      const user = await this.userRepository.findOne({
+        where: { email: dto.email, phone: dto.phone },
+      });
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    if (user.code !== dto.code) {
-      throw new UnauthorizedException('Invalid OTP code');
-    }
-    user.code = null;
-    await this.userRepository.save(user);
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-    };
+      if (!user)
+        throw new RpcException({
+          statusCode: 401,
+          message: 'Invalid credentials',
+        });
+      if (user.code !== dto.code)
+        throw new RpcException({
+          statusCode: 401,
+          message: 'Invalid OTP code',
+        });
 
-    const token = this.jwtService.sign(payload);
-
-    return {
-      accessToken: token,
-      user,
-    };
+      user.code = '';
+      await this.userRepository.save(user);
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      };
+      const token = this.jwtService.sign(payload);
+      return { accessToken: token, user };
+    } catch (error) {
+      throw toRpc(error, 'OTP verification failed');
+    }
   }
-  
+
+  async createUser(dto: CreateUserDto): Promise<User> {
+    try {
+      if (dto.role == UserRole.ADMIN) {
+        if (!dto.email || !dto.password) {
+          throw new RpcException({
+            statusCode: 401,
+            message: 'Invalid Credentials!',
+          });
+        }
+        const existing = await this.userRepository.findOne({
+          where: [{ email: dto.email }],
+        });
+        if (existing)
+          throw new RpcException({
+            statusCode: 409,
+            message: 'User already exists',
+          });
+        dto.password = await bcrypt.hash(dto.password, 10);
+      } else {
+        if (!dto.email || !dto.phone) {
+          throw new RpcException({
+            statusCode: 401,
+            message: 'Invalid Credentials!',
+          });
+        }
+        const existing = await this.userRepository.findOne({
+          where: [{ email: dto.email }, { phone: dto.phone }],
+        });
+        if (existing)
+          throw new RpcException({
+            statusCode: 409,
+            message: 'User already exists',
+          });
+      }
+      const user = this.userRepository.create(dto);
+      return await this.userRepository.save(user);
+    } catch (error) {
+      throw toRpc(error, 'Create user failed');
+    }
+  }
+
   async getUsers(): Promise<User[]> {
-    return this.userRepository.find();
+    try {
+      return await this.userRepository.find();
+    } catch (error) {
+      throw toRpc(error, 'Get users failed');
+    }
   }
 
   async getUserById(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    return user;
+    try {
+      const user = await this.userRepository.findOne({ where: { id } });
+      if (!user)
+        throw new RpcException({ statusCode: 404, message: 'User not found' });
+      return user;
+    } catch (error) {
+      throw toRpc(error, 'Get user by id failed');
+    }
   }
 
-  async findByEmailOrPhone(identifier: string): Promise<User | null> {
-    return this.userRepository.findOne({
-      where: [{ email: identifier }, { phone: identifier }],
-    });
+  async findUsersByFilters(filters: FilterUsersDto): Promise<User[]> {
+    try {
+      const where: FindOptionsWhere<User>[] = [];
+      if (filters.identifier) {
+        const pattern = ILike(`%${filters.identifier}%`);
+        where.push(
+          { email: pattern },
+          { phone: pattern },
+          { fullName: pattern },
+        );
+      }
+      const commonFilters: Partial<FindOptionsWhere<User>> = {};
+      if (filters.role) commonFilters.role = filters.role;
+      if (typeof filters.isActive === 'boolean')
+        commonFilters.isActive = filters.isActive;
+      if (filters.joinedAfter && filters.joinedBefore)
+        commonFilters.createdAt = Between(
+          new Date(filters.joinedAfter),
+          new Date(filters.joinedBefore),
+        );
+      else if (filters.joinedAfter)
+        commonFilters.createdAt = MoreThanOrEqual(
+          new Date(filters.joinedAfter),
+        );
+      else if (filters.joinedBefore)
+        commonFilters.createdAt = LessThanOrEqual(
+          new Date(filters.joinedBefore),
+        );
+      const combinedWhere =
+        where.length > 0
+          ? where.map((w) => ({ ...w, ...commonFilters }))
+          : [commonFilters];
+      return await this.userRepository.find({ where: combinedWhere });
+    } catch (error) {
+      throw toRpc(error, 'Find users by filters failed');
+    }
   }
 
-  async updateUser(
-    id: string,
-    @Body() updateData: UpdateUserDto,
-  ): Promise<User> {
-    const user = await this.getUserById(id);
-    Object.assign(user, updateData);
-    return this.userRepository.save(user);
+  async updateUser(id: string, updateData: UpdateUserDto) {
+    try {
+      const user = await this.getUserById(id);
+      Object.assign(user, updateData);
+      return await this.userRepository.save(user);
+    } catch (error) {
+      throw toRpc(error, 'Update user failed');
+    }
   }
 
   async deleteUser(id: string): Promise<void> {
-    const result = await this.userRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException('User not found');
+    try {
+      const result = await this.userRepository.delete(id);
+      if (result.affected === 0) {
+        throw new RpcException({ statusCode: 404, message: 'User not found' });
+      }
+    } catch (error) {
+      throw toRpc(error, 'Delete user failed');
     }
   }
+}
+
+function toRpc(error: any, fallbackMsg?: string) {
+  if (error instanceof RpcException) return error;
+  const statusCode = error?.getStatus?.() || 500;
+  const message = error?.message || fallbackMsg || 'Internal server error';
+  return new RpcException({ statusCode, message });
 }

@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RpcException } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
 import { StripeService } from './stripe/stripe.controller';
@@ -33,37 +37,64 @@ export class OrdersService {
   }
 
   async getOrdersByUser(userId: string) {
-    return this.orderRepository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
+    try {
+      return await this.orderRepository.find({
+        where: { userId },
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      throw toRpc(error, 'Failed to get orders by user');
+    }
   }
 
   async getOrderById(id: string) {
-    const order = await this.orderRepository.findOne({ where: { id } });
-    if (!order) throw new NotFoundException('Order not found');
-    return order;
+    try {
+      const order = await this.orderRepository.findOne({ where: { id } });
+      if (!order)
+        throw new RpcException({ statusCode: 404, message: 'Order not found' });
+      return order;
+    } catch (error) {
+      throw toRpc(error, 'Failed to get order by id');
+    }
   }
 
   async markAsPaid(id: string) {
-    const order = await this.getOrderById(id);
-    order.isPaid = true;
-    order.paidAt = new Date();
-    return this.orderRepository.save(order);
+    try {
+      const order = await this.getOrderById(id);
+      order.isPaid = true;
+      order.paidAt = new Date();
+      return await this.orderRepository.save(order);
+    } catch (error) {
+      throw toRpc(error, 'Failed to mark order as paid');
+    }
   }
 
   async markAsDelivered(id: string) {
-    const order = await this.getOrderById(id);
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
-    return this.orderRepository.save(order);
+    try {
+      const order = await this.getOrderById(id);
+      order.isDelivered = true;
+      order.deliveredAt = new Date();
+      return await this.orderRepository.save(order);
+    } catch (error) {
+      throw toRpc(error, 'Failed to mark order as delivered');
+    }
   }
 
   async deleteOrder(id: string) {
-    const result = await this.orderRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException('Order not found');
+    try {
+      const result = await this.orderRepository.delete(id);
+      if (result.affected === 0)
+        throw new RpcException({ statusCode: 404, message: 'Order not found' });
+      return { message: 'Order deleted successfully' };
+    } catch (error) {
+      throw toRpc(error, 'Failed to delete order');
     }
-    return { message: 'Order deleted successfully' };
   }
+}
+
+function toRpc(error: any, fallbackMsg?: string) {
+  if (error instanceof RpcException) return error;
+  const statusCode = error?.getStatus?.() || 500;
+  const message = error?.message || fallbackMsg || 'Orders microservice error';
+  return new RpcException({ statusCode, message });
 }

@@ -15,6 +15,9 @@ export class Coupon {
   @Column({ unique: true })
   code: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @ManyToOne(() => Affiliate, (affiliate) => affiliate.coupons, { onDelete: 'CASCADE' })
   affiliate: Affiliate;
 

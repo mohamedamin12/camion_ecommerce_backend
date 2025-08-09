@@ -11,9 +11,16 @@ export class OTPService {
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN,
     );
-    this.verifySid = process.env.TWILIO_VERIFY_SID;
+    this.verifySid = process.env.TWILIO_VERIFY_SID || "";
   }
   async sendSms(to: string, body: string): Promise<any> {
+    console.log('Sending SMS to:', to, 'with body:', body);
+    console.log("client:", this.client);
+    console.log("twilio phone number:", process.env.TWILIO_PHONE_NUMBER);
+    console.log("twilio account sid:", process.env.TWILIO_ACCOUNT_SID);
+    console.log("twilio auth token:", process.env.TWILIO_AUTH_TOKEN);
+
+
     return this.client.messages.create({
       body,
       to, // recipient

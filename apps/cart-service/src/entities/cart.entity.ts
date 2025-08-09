@@ -20,8 +20,8 @@ export class CartItem {
   @Column({ nullable: true })
   image?: string;
 
-  @Column({ type: 'float', nullable: true })
-  price?: number;
+  @Column({ type: 'varchar', nullable: true })
+  price?: string;
 
   @Column({ nullable: true })
   couponCode?: string;

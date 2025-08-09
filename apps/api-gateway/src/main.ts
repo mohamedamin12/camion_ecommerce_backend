@@ -1,9 +1,9 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
-import { JwtAuthGuard } from '@app/auth';
+// import { JwtAuthGuard } from '@app/auth';
 import helmet from 'helmet';
 
 dotenv.config();
@@ -11,26 +11,30 @@ dotenv.config({ path: __dirname + '../../../.env' });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.API_GATEWAY_HTTP_PORT || 5000);
-  app.useGlobalGuards(new JwtAuthGuard(Reflector));
-
+    
+  
+  // app.useGlobalGuards(new JwtAuthGuard(Reflector));
+  
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    credentials: true,
+  });
+  
   app.use(helmet());
 
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, 
-      forbidNonWhitelisted: true, 
-      transform: true, 
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
-
   
-  app.enableCors({
-    origin: [],
-    credentials: true,
-  });
-
+  
+  await app.listen(process.env.API_GATEWAY_HTTP_PORT || 5000);
+  
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
     options: {

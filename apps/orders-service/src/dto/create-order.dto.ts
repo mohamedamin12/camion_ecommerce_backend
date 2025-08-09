@@ -1,33 +1,31 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 
 export class CreateOrderDto {
   @IsNotEmpty()
-  userId: string;
-
-  @IsNotEmpty()
+  @IsArray()
   cartItems: Array<{
     productId: string;
     title?: string;
     image?: string;
     quantity: number;
-    price: number;
+    price: string;
   }>;
 
-  @IsNumber()
   @IsOptional()
-  taxPrice?: number;
+  @IsString()
+  taxPrice?: string;
 
-  @IsNumber()
   @IsOptional()
-  shippingPrice?: number;
-
-  @IsNumber()
-  totalOrderPrice: number;
+  @IsString()
+  shippingPrice?: string;
 
   @IsString()
   currency: string;
-  
+
   @IsString()
+  totalOrderPrice: string;
+
   @IsOptional()
+  @IsString()
   shippingAddress?: string;
 }

@@ -1,59 +1,136 @@
-import { Controller, Get } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {
+  Controller, UsePipes, ValidationPipe, NotFoundException,
+  ConflictException, BadRequestException, UnauthorizedException,
+} from '@nestjs/common';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { AffiliateServiceService } from './affiliate-service.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateAffiliateRequestDto } from './dto/create-affiliate-request.dto';
 import { ReviewAffiliateRequestDto } from './dto/review-affiliate-request.dto ';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateAffiliateDto } from './dto/update-affiliate.dto';
+import { SearchCouponsDto } from './dto/search-coupons.dto';
 
+function mapException(error: any) {
+  if (
+    error instanceof NotFoundException ||
+    error instanceof ConflictException ||
+    error instanceof BadRequestException ||
+    error instanceof UnauthorizedException
+  ) {
+    return new RpcException({
+      statusCode: error.getStatus(),
+      message: error.message,
+    });
+  }
+  return new RpcException({
+    statusCode: 500,
+    message: error?.message || 'Unknown error from affiliate microservice',
+  });
+}
+
+@UsePipes(new ValidationPipe({
+  exceptionFactory: (errors) =>
+    new RpcException({
+      statusCode: 400,
+      message: 'Validation failed',
+      details: errors,
+    }),
+}))
 @Controller()
 export class AffiliateServiceController {
-  constructor(private readonly affiliateService: AffiliateServiceService) { }
+  constructor(private readonly affiliateService: AffiliateServiceService) {}
 
   @MessagePattern({ cmd: 'create_affiliate_request' })
-  handleAffiliateRequest(@Payload() dto: CreateAffiliateRequestDto) {
-    return this.affiliateService.createAffiliateRequest(dto);
+  async handleAffiliateRequest(@Payload() dto: CreateAffiliateRequestDto) {
+    try {
+      return await this.affiliateService.createAffiliateRequest(dto);
+    } catch (error) {
+      throw mapException(error);
+    }
   }
 
   @MessagePattern({ cmd: 'get_pending_affiliate_requests' })
-  handleGetPendingRequests() {
-    return this.affiliateService.getPendingRequests();
+  async handleGetPendingRequests() {
+    try {
+      return await this.affiliateService.getPendingRequests();
+    } catch (error) {
+      throw mapException(error);
+    }
   }
 
   @MessagePattern({ cmd: 'review_affiliate_request' })
-  handleReviewRequest(@Payload() dto: ReviewAffiliateRequestDto) {
-    return this.affiliateService.reviewAffiliateRequest(dto);
+  async handleReviewRequest(@Payload() dto: ReviewAffiliateRequestDto) {
+    try {
+      return await this.affiliateService.reviewAffiliateRequest(dto);
+    } catch (error) {
+      throw mapException(error);
+    }
   }
 
   @MessagePattern({ cmd: 'create_coupon' })
-  handleCreateCoupon(@Payload() dto: CreateCouponDto) {
-    return this.affiliateService.createCoupon(dto);
-  }
-
-  @MessagePattern({ cmd: 'delete_coupon' })
-  deleteCoupon(@Payload() id: string) {
-    return this.affiliateService.deleteCoupon(id);
-  }
-
-  @MessagePattern({ cmd: 'update_affiliate' })
-  handleUpdateAffiliate(@Payload() dto: UpdateAffiliateDto) {
-    return this.affiliateService.updateAffiliate(dto);
-  }
-
-  @MessagePattern({ cmd: 'delete_affiliate' })
-  handleDeleteAffiliate(@Payload() id: string) {
-    return this.affiliateService.deleteAffiliate(id);
+  async handleCreateCoupon(@Payload() data: { affiliateId: string } & CreateCouponDto) {
+    try {
+      const { affiliateId, ...dto } = data;
+      return await this.affiliateService.createCoupon(affiliateId, dto);
+    } catch (error) {
+      throw mapException(error);
+    }
   }
 
   @MessagePattern({ cmd: 'get_coupons_by_affiliate' })
-  handleGetCouponsByAffiliate(@Payload() affiliateId: string) {
-    return this.affiliateService.getCouponsByAffiliate(affiliateId);
+  async handleGetCouponsByAffiliate(@Payload() data: { affiliateId: string }) {
+    try {
+      return await this.affiliateService.getCouponsByAffiliate(data.affiliateId);
+    } catch (error) {
+      throw mapException(error);
+    }
+  }
+
+
+  @MessagePattern({ cmd: 'search_coupons' })
+  async searchCoupons(@Payload() dto: SearchCouponsDto) {
+    try {
+      return await this.affiliateService.searchCoupons(dto);
+    } catch (error) {
+      throw mapException(error);
+    }
+  }
+
+  @MessagePattern({ cmd: 'delete_coupon' })
+  async deleteCoupon(@Payload() id: string) {
+    try {
+      return await this.affiliateService.deleteCoupon(id);
+    } catch (error) {
+      throw mapException(error);
+    }
+  }
+
+  @MessagePattern({ cmd: 'update_affiliate' })
+  async handleUpdateAffiliate(@Payload() dto: UpdateAffiliateDto) {
+    try {
+      return await this.affiliateService.updateAffiliate(dto);
+    } catch (error) {
+      throw mapException(error);
+    }
+  }
+
+  @MessagePattern({ cmd: 'delete_affiliate' })
+  async handleDeleteAffiliate(@Payload() id: string) {
+    try {
+      return await this.affiliateService.deleteAffiliate(id);
+    } catch (error) {
+      throw mapException(error);
+    }
   }
 
   @MessagePattern({ cmd: 'get_all_coupons' })
-  handleGetAllCoupons() {
-    return this.affiliateService.getAllCoupons();
+  async handleGetAllCoupons() {
+    try {
+      return await this.affiliateService.getAllCoupons();
+    } catch (error) {
+      throw mapException(error);
+    }
   }
-
-
 }
