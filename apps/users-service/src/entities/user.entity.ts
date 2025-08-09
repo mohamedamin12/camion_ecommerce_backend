@@ -23,7 +23,7 @@ export class User {
   @Column({ nullable: true, unique: true })
   phone: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column()
