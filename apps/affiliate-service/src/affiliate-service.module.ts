@@ -18,7 +18,7 @@ import { AuthModule } from '@app/auth';
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
     TypeOrmModule.forFeature([Affiliate, Coupon]),
     AuthModule
