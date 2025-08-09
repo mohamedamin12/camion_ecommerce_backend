@@ -94,8 +94,19 @@ export class UsersService {
           message: 'Access denied. Admins only.',
         });
       }
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+      const token = this.jwtService.sign(payload);
 
-      return { success: true, msg: `Admin Login`, admin: user };
+      return {
+        success: true,
+        msg: `Admin Login`,
+        accessToken: token,
+        admin: user,
+      };
     } catch (error) {
       console.error('Login error at login', error);
       throw toRpc(error, 'Login failed');
