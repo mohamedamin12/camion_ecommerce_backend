@@ -55,7 +55,7 @@ export class UsersService {
       throw toRpc(error, 'Registration failed');
     }
   }
-  
+
   async loginAdmin(dto: LoginDto) {
     try {
       if (!dto.email || !dto.password) {
@@ -186,14 +186,38 @@ export class UsersService {
 
   async createUser(dto: CreateUserDto): Promise<User> {
     try {
-      const existing = await this.userRepository.findOne({
-        where: [{ email: dto.email }, { phone: dto.phone }],
-      });
-      if (existing)
-        throw new RpcException({
-          statusCode: 409,
-          message: 'User already exists',
+      if (dto.role == UserRole.ADMIN) {
+        if (!dto.email || !dto.password) {
+          throw new RpcException({
+            statusCode: 401,
+            message: 'Invalid Credentials!',
+          });
+        }
+        const existing = await this.userRepository.findOne({
+          where: [{ email: dto.email }],
         });
+        if (existing)
+          throw new RpcException({
+            statusCode: 409,
+            message: 'User already exists',
+          });
+        dto.password = await bcrypt.hash(dto.password, 10);
+      } else {
+        if (!dto.email || !dto.phone) {
+          throw new RpcException({
+            statusCode: 401,
+            message: 'Invalid Credentials!',
+          });
+        }
+        const existing = await this.userRepository.findOne({
+          where: [{ email: dto.email }, { phone: dto.phone }],
+        });
+        if (existing)
+          throw new RpcException({
+            statusCode: 409,
+            message: 'User already exists',
+          });
+      }
       const user = this.userRepository.create(dto);
       return await this.userRepository.save(user);
     } catch (error) {
